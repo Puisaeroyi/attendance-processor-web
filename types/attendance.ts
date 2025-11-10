@@ -1,0 +1,203 @@
+/**
+ * Type definitions for attendance processing system
+ * Ported from Python implementation
+ */
+
+/**
+ * Raw swipe record from biometric system
+ */
+export interface SwipeRecord {
+  id: string;
+  name: string;
+  date: Date;
+  time: string;
+  timestamp: Date;
+  status: string;
+  type?: string;
+}
+
+/**
+ * Configuration for burst detection
+ */
+export interface BurstDetectionConfig {
+  thresholdMinutes: number;
+}
+
+/**
+ * A burst is a group of consecutive swipes within the threshold time
+ */
+export interface BurstRecord {
+  name: string;
+  burstId: string;
+  burstStart: Date;
+  burstEnd: Date;
+  swipeCount: number;
+  swipes: SwipeRecord[];
+}
+
+/**
+ * Shift configuration from rule.yaml (v10.0)
+ */
+export interface ShiftConfig {
+  name: string; // "A", "B", "C"
+  displayName: string; // "Morning", "Afternoon", "Night"
+
+  // Check-in configuration
+  checkInStart: string; // HH:MM:SS format
+  checkInEnd: string;
+  shiftStart: string; // Official shift start time
+  checkInOnTimeCutoff: string; // Last second to be on-time
+  checkInLateThreshold: string; // This and after = Late
+
+  // Check-out configuration
+  checkOutStart: string;
+  checkOutEnd: string;
+
+  // Break detection configuration
+  breakSearchStart: string;
+  breakSearchEnd: string;
+  breakOutCheckpoint: string; // Target time for Break Time Out
+  midpoint: string; // Midpoint for fallback logic
+  minimumBreakGapMinutes: number;
+  breakEndTime: string; // Official break end time
+  breakInOnTimeCutoff: string; // Last second to be on-time for break return
+  breakInLateThreshold: string; // This and after = Late from break
+}
+
+/**
+ * Configuration for shift detection
+ */
+export interface ShiftDetectionConfig {
+  shifts: Record<string, ShiftConfig>;
+}
+
+/**
+ * Break times detected from shift instance
+ */
+export interface BreakTimes {
+  breakOut: string; // HH:MM:SS or empty
+  breakIn: string; // HH:MM:SS or empty
+  breakInTime: string | null; // Time object for status calculation
+}
+
+/**
+ * A shift instance is a specific occurrence of a shift for a user
+ */
+export interface ShiftInstance {
+  shiftCode: string;
+  shiftDate: Date;
+  shiftInstanceId: string;
+  userName: string;
+  checkIn: Date;
+  checkOut?: Date;
+  bursts: BurstRecord[];
+}
+
+/**
+ * Final attendance record output (v10.0)
+ */
+export interface AttendanceRecord {
+  date: Date;
+  id: string;
+  name: string;
+  shift: string;
+  checkIn: string;
+  breakOut: string;
+  breakIn: string;
+  checkOut: string;
+  checkInStatus?: string; // "On Time" | "Late" | ""
+  breakInStatus?: string; // "On Time" | "Late" | ""
+  totalHours?: number;
+  overtime?: number;
+}
+
+/**
+ * User configuration
+ */
+export interface UserConfig {
+  id: string;
+  name: string;
+  shifts: string[];
+}
+
+/**
+ * Complete rule configuration
+ */
+export interface RuleConfig {
+  statusFilter: string[];
+  burstThresholdMinutes: number;
+  shifts: Record<string, ShiftConfig>;
+  dateFormat: string;
+  timeFormat: string;
+}
+
+/**
+ * Processing result with statistics
+ */
+export interface ProcessingResult {
+  success: boolean;
+  recordsProcessed: number;
+  burstsDetected: number;
+  shiftInstancesFound: number;
+  attendanceRecordsGenerated: number;
+  errors: string[];
+  warnings: string[];
+  outputData: AttendanceRecord[];
+}
+
+/**
+ * Analytics types for dashboard
+ */
+export interface UserStats {
+  userName: string;
+  totalRecords: number;
+  lateCount: number;
+  onTimeCount: number;
+  latePercentage: number;
+  onTimePercentage: number;
+}
+
+export interface ShiftStats {
+  shift: string;
+  shiftName: string;
+  count: number;
+  percentage: number;
+}
+
+export interface TrendData {
+  date: string;
+  [userName: string]: number | string; // Dynamic user fields + date
+}
+
+export interface SummaryStats {
+  totalRecords: number;
+  totalLate: number;
+  totalOnTime: number;
+  latePercentage: number;
+  onTimePercentage: number;
+  averageAttendance: number;
+  uniqueUsers: number;
+}
+
+export interface AnalyticsData {
+  userStats: UserStats[];
+  shiftDistribution: ShiftStats[];
+  trends: TrendData[];
+  summary: SummaryStats;
+}
+
+/**
+ * API request/response types
+ */
+export interface ProcessAttendanceRequest {
+  fileData: ArrayBuffer;
+  fileName: string;
+  config?: Partial<RuleConfig>;
+}
+
+export interface ProcessAttendanceResponse {
+  jobId: string;
+  status: 'processing' | 'completed' | 'failed';
+  result?: ProcessingResult;
+  error?: string;
+}

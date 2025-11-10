@@ -1,0 +1,17 @@
+# User Mapping - Attendance Processor
+# Separate from business rules for security/maintainability
+# This file contains only user data, can be edited by user managers
+
+operators:
+  Silver_Bui:
+    output_name: "Bui Duc Toan"
+    output_id: "TPL0001"
+  Capone:
+    output_name: "Pham Tan Phat"
+    output_id: "TPL0002"
+  Minh:
+    output_name: "Mac Le Duc Minh"
+    output_id: "TPL0003"
+  Trieu:
+    output_name: "Nguyen Hoang Trieu"
+    output_id: "TPL0004"
