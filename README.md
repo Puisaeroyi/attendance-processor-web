@@ -345,6 +345,95 @@ server {
 }
 ```
 
+#### Apache HTTP Server Configuration
+```apache
+# Enable required modules
+a2enmod proxy
+a2enmod proxy_http
+a2enmod proxy_wstunnel
+a2enmod rewrite
+a2enmod headers
+
+# Create virtual host configuration
+# File: /etc/apache2/sites-available/attendance-processor.conf
+<VirtualHost *:80>
+    ServerName your-domain.com
+    ServerAdmin admin@your-domain.com
+
+    # Enable WebSocket support for Next.js development
+    ProxyPreserveHost On
+    ProxyRequests Off
+
+    # Proxy WebSocket connections
+    ProxyPass /_next/webpack-hmr http://localhost:3000/_next/webpack-hmr
+    ProxyPassReverse /_next/webpack-hmr http://localhost:3000/_next/webpack-hmr
+
+    # Proxy all requests to Next.js
+    ProxyPass / http://localhost:3000/
+    ProxyPassReverse / http://localhost:3000/
+
+    # WebSocket headers
+    ProxyPassMatch ^/?(.*)$ http://localhost:3000/$1
+    ProxyPassReverse / http://localhost:3000/
+
+    # Additional headers for Next.js
+    RequestHeader set X-Forwarded-Proto "http"
+    RequestHeader set X-Forwarded-Host "localhost"
+    RequestHeader set X-Real-IP %{REMOTE_ADDR}s
+</VirtualHost>
+
+# For HTTPS with SSL (using Certbot)
+<VirtualHost *:443>
+    ServerName your-domain.com
+    ServerAdmin admin@your-domain.com
+
+    # SSL Configuration
+    SSLEngine on
+    SSLCertificateFile /etc/letsencrypt/live/your-domain.com/fullchain.pem
+    SSLCertificateKeyFile /etc/letsencrypt/live/your-domain.com/privkey.pem
+    Include /etc/letsencrypt/options-ssl-apache.conf
+
+    # Enable WebSocket support for Next.js development
+    ProxyPreserveHost On
+    ProxyRequests Off
+
+    # Proxy WebSocket connections
+    ProxyPass /_next/webpack-hmr http://localhost:3000/_next/webpack-hmr
+    ProxyPassReverse /_next/webpack-hmr http://localhost:3000/_next/webpack-hmr
+
+    # Proxy all requests to Next.js
+    ProxyPass / http://localhost:3000/
+    ProxyPassReverse / http://localhost:3000/
+
+    # WebSocket headers
+    ProxyPassMatch ^/?(.*)$ http://localhost:3000/$1
+    ProxyPassReverse / http://localhost:3000/
+
+    # Additional headers for Next.js
+    RequestHeader set X-Forwarded-Proto "https"
+    RequestHeader set X-Forwarded-Host "localhost"
+    RequestHeader set X-Real-IP %{REMOTE_ADDR}s
+</VirtualHost>
+
+# Enable the site
+sudo a2ensite attendance-processor.conf
+sudo systemctl reload apache2
+```
+
+#### Apache Configuration with .htaccess (Shared Hosting)
+```apache
+# File: .htaccess in project root
+RewriteEngine On
+
+# Forward all requests to Next.js
+RewriteRule ^(.*)$ http://localhost:3000/$1 [P,L]
+
+# Set headers
+RequestHeader set X-Forwarded-Proto "http"
+RequestHeader set X-Forwarded-Host "localhost"
+RequestHeader set X-Real-IP %{REMOTE_ADDR}s
+```
+
 ### Firewall Configuration
 
 #### Windows Firewall
