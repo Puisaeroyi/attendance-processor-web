@@ -107,7 +107,7 @@ export function loadRuleConfig(configPath?: string): RuleConfig {
       }
 
       const fileContents = readFileSync(rulePath, 'utf8');
-      return yaml.load(fileContents) as RuleConfig;
+      return yaml.load(fileContents, { json: true }) as RuleConfig;
     },
     {},
     'rule.yaml'

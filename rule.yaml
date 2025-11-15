@@ -51,16 +51,16 @@ grouping_logic:
   shift_boundaries:
     A_shift:  # Morning: 06:00-14:00
       shift_date: "Calendar date of Check-in"
-      activity_window: "05:30 on shift_date THROUGH 14:35 on shift_date"
-      
+      activity_window: "05:00 on shift_date THROUGH 16:00 on shift_date"
+
     B_shift:  # Afternoon: 14:00-22:00
       shift_date: "Calendar date of Check-in"
-      activity_window: "13:30 on shift_date THROUGH 22:35 on shift_date"
-      
+      activity_window: "13:00 on shift_date THROUGH 00:00 on (shift_date + 1)"
+
     C_shift:  # Night: 22:00-06:00 (CROSSES MIDNIGHT)
       shift_date: "Calendar date of Check-in"
-      activity_window: "21:30 on shift_date THROUGH 06:35 on (shift_date + 1)"
-      special_handling: "All next-day swipes before 06:35 belong to previous day's shift"
+      activity_window: "21:00 on shift_date THROUGH 08:00 on (shift_date + 1)"
+      special_handling: "All next-day swipes before 08:00 belong to previous day's shift"
 
 burst_detection:
   definition: "Multiple swipes within <= 2 minutes grouped as single burst"
@@ -81,34 +81,34 @@ shift_structure:
       name: "Morning"
       window: "06:00-14:00"
       check_in:
-        search_range: "05:30-06:35"      # Where to look for swipes
+        search_range: "05:00-06:35"      # Extended: 1 hour before shift start
         shift_start: "06:00:00"
         on_time_cutoff: "06:04:59"       # Last second to be on-time
         late_threshold: "06:05:00"        # This and after = LATE
       check_out:
-        search_range: "13:30-14:35"
+        search_range: "13:30-16:00"      # Extended: 2 hours after shift end
         
     B:
-      name: "Afternoon"  
+      name: "Afternoon"
       window: "14:00-22:00"
       check_in:
-        search_range: "13:30-14:35"
+        search_range: "13:00-14:35"      # Extended: 1 hour before shift start
         shift_start: "14:00:00"
         on_time_cutoff: "14:04:59"
         late_threshold: "14:05:00"
       check_out:
-        search_range: "21:30-22:35"
+        search_range: "21:30-00:00"      # Extended: 2 hours after shift end (midnight)
         
     C:
       name: "Night"
       window: "22:00-06:00"
       check_in:
-        search_range: "21:30-22:35"
+        search_range: "21:00-22:35"      # Extended: 1 hour before shift start
         shift_start: "22:00:00"
         on_time_cutoff: "22:04:59"
         late_threshold: "22:05:00"
       check_out:
-        search_range: "05:30-06:35"      # Next calendar day
+        search_range: "05:30-08:00"      # Extended: 2 hours after shift end (next day)
   
   late_marking_rules:
     check_in_validation:
@@ -185,22 +185,22 @@ break_detection:
         break_time_in: "Earliest after midpoint"
       
       all_swipes_before_midpoint:
-        conditions:
-          - condition: "All swipes before midpoint with gap >= minimum"
-            break_time_out: "First swipe before gap"
-            break_time_in: "First swipe after gap"
-          - condition: "All swipes before midpoint without qualifying gap"
-            break_time_out: "Latest swipe"
-            break_time_in: "Leave blank"
+        condition_with_gap: "All swipes before midpoint with gap >= minimum"
+        break_time_out: "First swipe before gap"
+        break_time_in: "First swipe after gap"
+        
+        condition_no_gap: "All swipes before midpoint without qualifying gap"
+        break_time_out: "Latest swipe"
+        break_time_in: "Leave blank"
       
       all_swipes_after_midpoint:
-        conditions:
-          - condition: "All swipes after midpoint with gap >= minimum"
-            break_time_out: "First swipe before gap"
-            break_time_in: "First swipe after gap"
-          - condition: "All swipes after midpoint without qualifying gap"
-            break_time_out: "Leave blank"
-            break_time_in: "Latest swipe"
+        condition_with_gap: "All swipes after midpoint with gap >= minimum"
+        break_time_out: "First swipe before gap"
+        break_time_in: "First swipe after gap"
+        
+        condition_no_gap: "All swipes after midpoint without qualifying gap"
+        break_time_out: "Leave blank"
+        break_time_in: "Latest swipe"
     
     single_swipe_logic:
       before_midpoint:

@@ -25,17 +25,18 @@ export const dynamic = 'force-dynamic';
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
 
 // Default shift configurations from rule.yaml v10.0
+// Updated: Extended check-in range (1hr before) and check-out range (2hrs after)
 const DEFAULT_SHIFT_CONFIGS: Record<string, ShiftConfig> = {
   A: {
     name: 'A',
     displayName: 'Morning',
-    checkInStart: '05:30:00',
+    checkInStart: '05:00:00',        // Extended: 1 hour before shift start (was 05:30:00)
     checkInEnd: '06:35:00',
     shiftStart: '06:00:00',
     checkInOnTimeCutoff: '06:04:59',
     checkInLateThreshold: '06:05:00',
     checkOutStart: '13:30:00',
-    checkOutEnd: '14:35:00',
+    checkOutEnd: '16:00:00',         // Extended: 2 hours after shift end (was 14:35:00)
     breakSearchStart: '09:50:00',
     breakSearchEnd: '10:35:00',
     breakOutCheckpoint: '10:00:00',
@@ -48,13 +49,13 @@ const DEFAULT_SHIFT_CONFIGS: Record<string, ShiftConfig> = {
   B: {
     name: 'B',
     displayName: 'Afternoon',
-    checkInStart: '13:30:00',
+    checkInStart: '13:00:00',        // Extended: 1 hour before shift start (was 13:30:00)
     checkInEnd: '14:35:00',
     shiftStart: '14:00:00',
     checkInOnTimeCutoff: '14:04:59',
     checkInLateThreshold: '14:05:00',
     checkOutStart: '21:30:00',
-    checkOutEnd: '22:35:00',
+    checkOutEnd: '00:00:00',         // Extended: 2 hours after shift end (was 22:35:00, now midnight)
     breakSearchStart: '17:50:00',
     breakSearchEnd: '18:35:00',
     breakOutCheckpoint: '18:00:00',
@@ -67,13 +68,13 @@ const DEFAULT_SHIFT_CONFIGS: Record<string, ShiftConfig> = {
   C: {
     name: 'C',
     displayName: 'Night',
-    checkInStart: '21:30:00',
+    checkInStart: '21:00:00',        // Extended: 1 hour before shift start (was 21:30:00)
     checkInEnd: '22:35:00',
     shiftStart: '22:00:00',
     checkInOnTimeCutoff: '22:04:59',
     checkInLateThreshold: '22:05:00',
     checkOutStart: '05:30:00',
-    checkOutEnd: '06:35:00',
+    checkOutEnd: '08:00:00',         // Extended: 2 hours after shift end (was 06:35:00)
     breakSearchStart: '01:50:00',
     breakSearchEnd: '02:50:00',
     breakOutCheckpoint: '02:00:00',
