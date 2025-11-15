@@ -136,17 +136,23 @@ export async function POST(request: NextRequest) {
       worksheet.addRow(row);
     });
 
-    // Auto-fit columns
-    worksheet.columns.forEach((column) => {
-      if (column && 'eachCell' in column) {
-        let maxLength = 10;
-        column.eachCell?.({ includeEmpty: false }, (cell) => {
-          const cellValue = cell.value?.toString() || '';
-          maxLength = Math.max(maxLength, cellValue.length);
-        });
-        column.width = Math.min(maxLength + 2, 50); // Max width 50
-      }
-    });
+    // Auto-fit columns efficiently
+    const columnCount = extractedData[0]?.length || COLUMN_NAMES.length;
+    for (let col = 1; col <= columnCount; col++) {
+      let maxLength = 10;
+      const headerLength = (COLUMN_NAMES[col - 1] || '').length;
+      maxLength = Math.max(maxLength, headerLength);
+
+      // Check data rows for this column
+      extractedData.forEach((row) => {
+        if (row[col - 1]) {
+          maxLength = Math.max(maxLength, row[col - 1].toString().length);
+        }
+      });
+
+      // Set column width
+      worksheet.getColumn(col).width = Math.min(maxLength + 2, 50);
+    }
 
     // Generate XLSX buffer
     const buffer = await workbook.xlsx.writeBuffer();
