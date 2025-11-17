@@ -32,9 +32,9 @@ export function calculateUserStats(records: AttendanceRecord[]): UserStats[] {
   const userStats: UserStats[] = Object.entries(userGroups).map(([userName, userRecords]) => {
     const totalRecords = userRecords.length;
 
-    // Count late records (either check-in late or break-in late)
+    // Count late records (status contains "Late")
     const lateCount = userRecords.filter(
-      (r) => r.checkInStatus === 'Late' || r.breakInStatus === 'Late'
+      (r) => r.status && r.status.includes('Late')
     ).length;
 
     const onTimeCount = totalRecords - lateCount;
@@ -141,7 +141,7 @@ export function generateSummaryStats(records: AttendanceRecord[]): SummaryStats 
 
   // Count late records
   const totalLate = records.filter(
-    (r) => r.checkInStatus === 'Late' || r.breakInStatus === 'Late'
+    (r) => r.status && r.status.includes('Late')
   ).length;
 
   const totalOnTime = totalRecords - totalLate;

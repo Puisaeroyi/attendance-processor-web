@@ -87,6 +87,7 @@ shift_structure:
         late_threshold: "06:05:00"        # This and after = LATE
       check_out:
         search_range: "13:30-16:00"      # Extended: 2 hours after shift end
+        expected_time: "14:00:00"        # Target check-out time (Leave Soon if < this)
         
     B:
       name: "Afternoon"
@@ -98,6 +99,7 @@ shift_structure:
         late_threshold: "14:05:00"
       check_out:
         search_range: "21:30-00:00"      # Extended: 2 hours after shift end (midnight)
+        expected_time: "22:00:00"        # Target check-out time (Leave Soon if < this)
         
     C:
       name: "Night"
@@ -109,6 +111,7 @@ shift_structure:
         late_threshold: "22:05:00"
       check_out:
         search_range: "05:30-08:00"      # Extended: 2 hours after shift end (next day)
+        expected_time: "06:00:00"        # Target check-out time (Leave Soon if < this)
   
   late_marking_rules:
     check_in_validation:
@@ -128,6 +131,7 @@ break_detection:
       break_out:
         search_range: "09:50-10:35"
         checkpoint: "10:00:00"           # Break Time Out should be closest to this time
+        expected_time: "10:00:00"        # Target break start (Leave Soon if < this)
       break_in:
         search_range: "09:50-10:35"
         break_end_time: "10:30:00"
@@ -141,6 +145,7 @@ break_detection:
       break_out:
         search_range: "17:50-18:35"
         checkpoint: "18:00:00"           # Break Time Out should be closest to this time
+        expected_time: "18:00:00"        # Target break start (Leave Soon if < this)
       break_in:
         search_range: "17:50-18:35"
         break_end_time: "18:30:00"
@@ -154,6 +159,7 @@ break_detection:
       break_out:
         search_range: "01:50-02:50"      # On shift_date + 1
         checkpoint: "02:00:00"           # Break Time Out should be closest to this time
+        expected_time: "02:00:00"        # Target break start (Leave Soon if < this)
       break_in:
         search_range: "01:50-02:50"      # Extended to 02:50 for grace period
         break_end_time: "02:45:00"

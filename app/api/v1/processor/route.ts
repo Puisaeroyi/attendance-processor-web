@@ -24,8 +24,9 @@ export const dynamic = 'force-dynamic';
 // Security: File size limit (10MB)
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
 
-// Default shift configurations from rule.yaml v10.0
+// Default shift configurations from rule.yaml v10.1
 // Updated: Extended check-in range (1hr before) and check-out range (2hrs after)
+// Added: Expected time fields for early departure detection
 const DEFAULT_SHIFT_CONFIGS: Record<string, ShiftConfig> = {
   A: {
     name: 'A',
@@ -37,9 +38,11 @@ const DEFAULT_SHIFT_CONFIGS: Record<string, ShiftConfig> = {
     checkInLateThreshold: '06:05:00',
     checkOutStart: '13:30:00',
     checkOutEnd: '16:00:00',         // Extended: 2 hours after shift end (was 14:35:00)
+    checkOutExpectedTime: '14:00:00', // Target check-out time (Leave Soon if < this)
     breakSearchStart: '09:50:00',
     breakSearchEnd: '10:35:00',
     breakOutCheckpoint: '10:00:00',
+    breakOutExpectedTime: '10:00:00', // Target break start time (Leave Soon if < this)
     midpoint: '10:15:00',
     minimumBreakGapMinutes: 5,
     breakEndTime: '10:30:00',
@@ -56,9 +59,11 @@ const DEFAULT_SHIFT_CONFIGS: Record<string, ShiftConfig> = {
     checkInLateThreshold: '14:05:00',
     checkOutStart: '21:30:00',
     checkOutEnd: '00:00:00',         // Extended: 2 hours after shift end (was 22:35:00, now midnight)
+    checkOutExpectedTime: '22:00:00', // Target check-out time (Leave Soon if < this)
     breakSearchStart: '17:50:00',
     breakSearchEnd: '18:35:00',
     breakOutCheckpoint: '18:00:00',
+    breakOutExpectedTime: '18:00:00', // Target break start time (Leave Soon if < this)
     midpoint: '18:15:00',
     minimumBreakGapMinutes: 5,
     breakEndTime: '18:30:00',
@@ -75,9 +80,11 @@ const DEFAULT_SHIFT_CONFIGS: Record<string, ShiftConfig> = {
     checkInLateThreshold: '22:05:00',
     checkOutStart: '05:30:00',
     checkOutEnd: '08:00:00',         // Extended: 2 hours after shift end (was 06:35:00)
+    checkOutExpectedTime: '06:00:00', // Target check-out time (Leave Soon if < this)
     breakSearchStart: '01:50:00',
     breakSearchEnd: '02:50:00',
     breakOutCheckpoint: '02:00:00',
+    breakOutExpectedTime: '02:00:00', // Target break start time (Leave Soon if < this)
     midpoint: '02:22:30',
     minimumBreakGapMinutes: 5,
     breakEndTime: '02:45:00',
@@ -87,32 +94,50 @@ const DEFAULT_SHIFT_CONFIGS: Record<string, ShiftConfig> = {
 };
 
 /**
- * Determine check-in status based on time
+ * Determine consolidated status for all 4 attendance points
+ * Detects late arrivals (Check-in, Break In) and early departures (Break Out, Check Out)
+ *
+ * @param checkInTime - HH:MM:SS format
+ * @param breakOutTime - HH:MM:SS format
+ * @param breakInTime - HH:MM:SS format
+ * @param checkOutTime - HH:MM:SS format
+ * @param shiftConfig - Shift configuration with thresholds
+ * @returns Comma-separated deviations or "On Time"
+ *
+ * @example
+ * determineShiftStatus('06:05:40', '09:52:00', '10:28:00', '14:05:00', config)
+ * // Returns: "Late Check-in, Leave Soon Break Out"
  */
-function determineCheckInStatus(checkInTime: string, shiftConfig: ShiftConfig): string {
-  if (!checkInTime) return '';
+function determineShiftStatus(
+  checkInTime: string,
+  breakOutTime: string,
+  breakInTime: string,
+  checkOutTime: string,
+  shiftConfig: ShiftConfig
+): string {
+  const deviations: string[] = [];
 
-  const time = checkInTime.substring(0, 8); // HH:MM:SS
-  const cutoff = shiftConfig.checkInOnTimeCutoff;
-  const threshold = shiftConfig.checkInLateThreshold;
+  // 1. Late Check-in: actual_time >= late_threshold
+  if (checkInTime && checkInTime >= shiftConfig.checkInLateThreshold) {
+    deviations.push('Late Check-in');
+  }
 
-  if (time <= cutoff) return 'On Time';
-  if (time >= threshold) return 'Late';
-  return '';
-}
+  // 2. Leave Soon Break Out: actual_time < expected_time
+  if (breakOutTime && breakOutTime < shiftConfig.breakOutExpectedTime) {
+    deviations.push('Leave Soon Break Out');
+  }
 
-/**
- * Determine break-in status based on time
- */
-function determineBreakInStatus(breakInTime: string | null, shiftConfig: ShiftConfig): string {
-  if (!breakInTime) return '';
+  // 3. Late Break In: actual_time >= late_threshold
+  if (breakInTime && breakInTime >= shiftConfig.breakInLateThreshold) {
+    deviations.push('Late Break In');
+  }
 
-  const cutoff = shiftConfig.breakInOnTimeCutoff;
-  const threshold = shiftConfig.breakInLateThreshold;
+  // 4. Leave Soon Check Out: actual_time < expected_time
+  if (checkOutTime && checkOutTime < shiftConfig.checkOutExpectedTime) {
+    deviations.push('Leave Soon Check Out');
+  }
 
-  if (breakInTime <= cutoff) return 'On Time';
-  if (breakInTime >= threshold) return 'Late';
-  return '';
+  return deviations.length > 0 ? deviations.join(', ') : 'On Time';
 }
 
 /**
@@ -370,12 +395,17 @@ export async function POST(request: NextRequest) {
         const checkInTime = shift.checkIn.toTimeString().substring(0, 8);
         const checkOutTime = shift.checkOut ? shift.checkOut.toTimeString().substring(0, 8) : '';
 
-        // Determine statuses
-        const checkInStatus = determineCheckInStatus(checkInTime, shiftConfig);
-        const breakInStatus = determineBreakInStatus(breakTimes.breakInTime, shiftConfig);
-
         // Map user using users.yaml configuration
         const mappedUser = mapUser(shift.userName);
+
+        // Determine consolidated status for all 4 attendance points
+        const status = determineShiftStatus(
+          checkInTime,
+          breakTimes.breakOut,
+          breakTimes.breakIn,
+          checkOutTime,
+          shiftConfig
+        );
 
         // Create attendance record
         attendanceRecords.push({
@@ -387,8 +417,7 @@ export async function POST(request: NextRequest) {
           breakOut: breakTimes.breakOut,
           breakIn: breakTimes.breakIn,
           checkOut: checkOutTime,
-          checkInStatus,
-          breakInStatus,
+          status,
         });
       }
 

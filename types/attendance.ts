@@ -36,7 +36,7 @@ export interface BurstRecord {
 }
 
 /**
- * Shift configuration from rule.yaml (v10.0)
+ * Shift configuration from rule.yaml (v10.1)
  */
 export interface ShiftConfig {
   name: string; // "A", "B", "C"
@@ -52,11 +52,13 @@ export interface ShiftConfig {
   // Check-out configuration
   checkOutStart: string;
   checkOutEnd: string;
+  checkOutExpectedTime: string; // Target check-out time (Leave Soon if < this)
 
   // Break detection configuration
   breakSearchStart: string;
   breakSearchEnd: string;
   breakOutCheckpoint: string; // Target time for Break Time Out
+  breakOutExpectedTime: string; // Target break start time (Leave Soon if < this)
   midpoint: string; // Midpoint for fallback logic
   minimumBreakGapMinutes: number;
   breakEndTime: string; // Official break end time
@@ -94,7 +96,7 @@ export interface ShiftInstance {
 }
 
 /**
- * Final attendance record output (v10.0)
+ * Final attendance record output (v10.1)
  */
 export interface AttendanceRecord {
   date: Date;
@@ -105,8 +107,7 @@ export interface AttendanceRecord {
   breakOut: string;
   breakIn: string;
   checkOut: string;
-  checkInStatus?: string; // "On Time" | "Late" | ""
-  breakInStatus?: string; // "On Time" | "Late" | ""
+  status: string; // Consolidated deviation status (e.g., "On Time", "Late Check-in", "Leave Soon Break Out, Late Break In")
   totalHours?: number;
   overtime?: number;
 }

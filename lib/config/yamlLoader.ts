@@ -38,6 +38,7 @@ export interface RuleConfig {
       };
       check_out: {
         search_range: string;
+        expected_time: string;
       };
     }>;
   };
@@ -47,6 +48,7 @@ export interface RuleConfig {
       break_out: {
         search_range: string;
         checkpoint: string;
+        expected_time: string;
       };
       break_in: {
         search_range: string;
@@ -188,9 +190,11 @@ export function convertYamlToShiftConfigs(ruleConfig: RuleConfig): Record<string
       checkInLateThreshold: yamlShifts.A.check_in.late_threshold,
       checkOutStart: yamlShifts.A.check_out.search_range.split('-')[0] + ':00',
       checkOutEnd: yamlShifts.A.check_out.search_range.split('-')[1] + ':00',
+      checkOutExpectedTime: yamlShifts.A.check_out.expected_time,
       breakSearchStart: yamlBreaks.A_shift.break_out.search_range.split('-')[0] + ':00',
       breakSearchEnd: yamlBreaks.A_shift.break_out.search_range.split('-')[1] + ':00',
       breakOutCheckpoint: yamlBreaks.A_shift.break_out.checkpoint,
+      breakOutExpectedTime: yamlBreaks.A_shift.break_out.expected_time,
       midpoint: yamlBreaks.A_shift.midpoint_checkpoint + ':00',
       minimumBreakGapMinutes: yamlBreaks.A_shift.minimum_break_gap_minutes,
       breakEndTime: yamlBreaks.A_shift.break_in.break_end_time,
@@ -211,9 +215,11 @@ export function convertYamlToShiftConfigs(ruleConfig: RuleConfig): Record<string
       checkInLateThreshold: yamlShifts.B.check_in.late_threshold,
       checkOutStart: yamlShifts.B.check_out.search_range.split('-')[0] + ':00',
       checkOutEnd: yamlShifts.B.check_out.search_range.split('-')[1] + ':00',
+      checkOutExpectedTime: yamlShifts.B.check_out.expected_time,
       breakSearchStart: yamlBreaks.B_shift.break_out.search_range.split('-')[0] + ':00',
       breakSearchEnd: yamlBreaks.B_shift.break_out.search_range.split('-')[1] + ':00',
       breakOutCheckpoint: yamlBreaks.B_shift.break_out.checkpoint,
+      breakOutExpectedTime: yamlBreaks.B_shift.break_out.expected_time,
       midpoint: yamlBreaks.B_shift.midpoint_checkpoint + ':00',
       minimumBreakGapMinutes: yamlBreaks.B_shift.minimum_break_gap_minutes,
       breakEndTime: yamlBreaks.B_shift.break_in.break_end_time,
@@ -234,9 +240,11 @@ export function convertYamlToShiftConfigs(ruleConfig: RuleConfig): Record<string
       checkInLateThreshold: yamlShifts.C.check_in.late_threshold,
       checkOutStart: yamlShifts.C.check_out.search_range.split('-')[0] + ':00',
       checkOutEnd: yamlShifts.C.check_out.search_range.split('-')[1] + ':00',
+      checkOutExpectedTime: yamlShifts.C.check_out.expected_time,
       breakSearchStart: yamlBreaks.C_shift.break_out.search_range.split('-')[0] + ':00',
       breakSearchEnd: yamlBreaks.C_shift.break_out.search_range.split('-')[1] + ':00',
       breakOutCheckpoint: yamlBreaks.C_shift.break_out.checkpoint,
+      breakOutExpectedTime: yamlBreaks.C_shift.break_out.expected_time,
       midpoint: yamlBreaks.C_shift.midpoint_checkpoint + ':00',
       minimumBreakGapMinutes: yamlBreaks.C_shift.minimum_break_gap_minutes,
       breakEndTime: yamlBreaks.C_shift.break_in.break_end_time,

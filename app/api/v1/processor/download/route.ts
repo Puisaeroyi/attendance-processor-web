@@ -46,8 +46,7 @@ export async function POST(request: NextRequest) {
       'Break Time Out',
       'Break Time In',
       'Check Out Record',
-      'Check-in Status',
-      'Break Time In Status',
+      'Status',
     ];
 
     // Add header row
@@ -82,8 +81,7 @@ export async function POST(request: NextRequest) {
         record.breakOut || '',
         record.breakIn || '',
         record.checkOut || '',
-        record.checkInStatus || '',
-        record.breakInStatus || '',
+        record.status || '',
       ];
 
       const row = worksheet.addRow(rowData);
@@ -98,17 +96,17 @@ export async function POST(request: NextRequest) {
           right: { style: 'thin', color: { argb: 'FFD3D3D3' } },
         };
 
-        // Special formatting for status columns
-        if (colNum === 9 || colNum === 10) { // Check-in Status or Break Time In Status
-          const cellValue = cell.value?.toString().toLowerCase();
-          if (cellValue === 'late') {
+        // Highlight Status column (column 9) if any deviation exists
+        if (colNum === 9) { // Status column
+          const cellValue = cell.value?.toString();
+          if (cellValue && cellValue !== 'On Time' && cellValue !== '') {
             cell.fill = {
               type: 'pattern',
               pattern: 'solid',
-              fgColor: { argb: 'FFFFC7CE' },
+              fgColor: { argb: 'FFFFC7CE' },  // Light red background
             };
             cell.font = {
-              color: { argb: 'FF9C0006' },
+              color: { argb: 'FF9C0006' },    // Dark red text
               bold: true,
             };
           }
@@ -126,8 +124,7 @@ export async function POST(request: NextRequest) {
       { width: 14 }, // Break Time Out
       { width: 14 }, // Break Time In
       { width: 16 }, // Check Out Record
-      { width: 16 }, // Check-in Status
-      { width: 18 }, // Break Time In Status
+      { width: 45 }, // Status (wider for comma-separated text)
     ];
 
     // Generate buffer
