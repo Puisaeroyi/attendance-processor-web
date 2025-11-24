@@ -15,3 +15,7 @@ operators:
   Trieu:
     output_name: "Nguyen Hoang Trieu"
     output_id: "TPL0004"
+  Thomas_Nguyen:
+    output_name: "Nguyen Thanh Thao Nguyen"
+    output_id: "TPL0005"
+    forced_shift: "D"
