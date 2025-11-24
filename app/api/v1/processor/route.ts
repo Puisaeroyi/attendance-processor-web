@@ -45,7 +45,7 @@ const DEFAULT_SHIFT_CONFIGS: Record<string, ShiftConfig> = {
     checkOutEnd: '16:00:00',         // Extended: 2 hours after shift end (was 14:35:00)
     checkOutExpectedTime: '14:00:00', // Target check-out time (Leave Soon if < this)
     breakSearchStart: '09:50:00',
-    breakSearchEnd: '10:35:00',
+    breakSearchEnd: '11:00:00',
     breakOutCheckpoint: '10:00:00',
     breakOutExpectedTime: '10:00:00', // Target break start time (Leave Soon if < this)
     midpoint: '10:15:00',
@@ -66,7 +66,7 @@ const DEFAULT_SHIFT_CONFIGS: Record<string, ShiftConfig> = {
     checkOutEnd: '00:00:00',         // Extended: 2 hours after shift end (was 22:35:00, now midnight)
     checkOutExpectedTime: '22:00:00', // Target check-out time (Leave Soon if < this)
     breakSearchStart: '17:50:00',
-    breakSearchEnd: '18:35:00',
+    breakSearchEnd: '19:00:00',
     breakOutCheckpoint: '18:00:00',
     breakOutExpectedTime: '18:00:00', // Target break start time (Leave Soon if < this)
     midpoint: '18:15:00',
@@ -87,7 +87,7 @@ const DEFAULT_SHIFT_CONFIGS: Record<string, ShiftConfig> = {
     checkOutEnd: '08:00:00',         // Extended: 2 hours after shift end (was 06:35:00)
     checkOutExpectedTime: '06:00:00', // Target check-out time (Leave Soon if < this)
     breakSearchStart: '01:50:00',
-    breakSearchEnd: '02:50:00',
+    breakSearchEnd: '03:15:00',
     breakOutCheckpoint: '02:00:00',
     breakOutExpectedTime: '02:00:00', // Target break start time (Leave Soon if < this)
     midpoint: '02:22:30',
@@ -95,6 +95,27 @@ const DEFAULT_SHIFT_CONFIGS: Record<string, ShiftConfig> = {
     breakEndTime: '02:45:00',
     breakInOnTimeCutoff: '02:49:59',
     breakInLateThreshold: '02:50:00',
+  },
+  D: {
+    name: 'D',
+    displayName: 'D',
+    checkInStart: '02:00:00',        // Extended: 1 hour before shift start
+    checkInEnd: '03:35:00',
+    shiftStart: '03:00:00',
+    checkInOnTimeCutoff: '03:04:59',
+    checkInLateThreshold: '03:05:00',
+    checkOutStart: '11:30:00',
+    checkOutEnd: '14:00:00',         // Extended: 2 hours after shift end
+    checkOutExpectedTime: '12:00:00', // Target check-out time (Leave Soon if < this)
+    breakSearchStart: '06:50:00',
+    breakSearchEnd: '08:30:00',
+    breakOutCheckpoint: '07:00:00',
+    breakOutExpectedTime: '07:00:00', // Target break start time (Leave Soon if < this)
+    midpoint: '07:30:00',
+    minimumBreakGapMinutes: 5,
+    breakEndTime: '08:00:00',
+    breakInOnTimeCutoff: '08:04:59',
+    breakInLateThreshold: '08:05:00',
   },
 };
 
@@ -370,7 +391,21 @@ export async function POST(request: NextRequest) {
 
     // STEP 2: Detect shift instances (with progress logging)
     console.log('STEP 2: Detecting shifts from', bursts.length, 'bursts...');
-    const shiftDetector = new ShiftDetector({ shifts: shiftConfigs });
+
+    // Prepare user mappings for forced shift assignments
+    const userMappings: Record<string, { outputName: string; outputId: string; forcedShift?: string }> = {};
+    if (combinedConfig.users?.operators) {
+      for (const [username, mapping] of Object.entries(combinedConfig.users.operators)) {
+        const mappingWithForcedShift = mapping as typeof mapping & { forced_shift?: string };
+        userMappings[username] = {
+          outputName: mapping.output_name,
+          outputId: mapping.output_id,
+          forcedShift: mappingWithForcedShift.forced_shift
+        };
+      }
+    }
+
+    const shiftDetector = new ShiftDetector({ shifts: shiftConfigs }, userMappings);
     const shiftInstances = shiftDetector.detectShifts(bursts);
     console.log('STEP 2: Found', shiftInstances.length, 'shift instances');
 

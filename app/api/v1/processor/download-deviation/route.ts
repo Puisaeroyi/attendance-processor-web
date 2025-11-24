@@ -137,16 +137,16 @@ export async function POST(request: NextRequest) {
     worksheet.columns = [
       { width: 12 }, // Date
       { width: 10 }, // ID
-      { width: 20 }, // Name
+      { width: 30 }, // Name (extended by 10px)
       { width: 12 }, // Shift
       { width: 12 }, // Check In
       { width: 12 }, // Break Out
       { width: 12 }, // Break In
       { width: 12 }, // Check Out
-      { width: 15 }, // Check-in Late
-      { width: 18 }, // Break Time Out Early
-      { width: 15 }, // Break Time In Late
-      { width: 15 }, // Check-Out Early
+      { width: 12 }, // Check-in Late
+      { width: 12 }, // Break Time Out Early
+      { width: 12 }, // Break Time In Late
+      { width: 12 }, // Check-Out Early
       { width: 20 }  // Missed Punch (wider for multiple missing fields)
     ];
 
