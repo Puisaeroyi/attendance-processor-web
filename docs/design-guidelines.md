@@ -195,6 +195,48 @@ Based on **8px grid system**:
 - User Colors: Bui Duc Toan (#3B82F6 Blue), Pham Tan Phat (#EF4444 Red), Mac Le Duc Minh (#10B981 Green), Nguyen Hoang Trieu (#F59E0B Amber)
 - Dynamic rendering: Extract userNames from data, map to Line components
 
+## Navigation Patterns
+
+### Header Navigation
+```tsx
+// Primary navigation in Header component
+const navItems = [
+  { name: 'Home', href: '/', icon: null },
+  { name: 'Feature Name', href: '/path', icon: IconComponent },
+];
+
+// Styling:
+- Border: 2px transparent, 2px black on hover
+- Shadow: shadow-nb-sm on hover
+- Font: Bold, uppercase, 14px
+- Gap: 24px between items
+- Icon: 16x16px, aligned left
+```
+
+### Feature Cards (Home Page)
+```tsx
+// Secondary navigation via clickable cards
+features = [
+  {
+    icon: IconComponent,
+    title: 'Feature Title',
+    description: 'Feature description',
+    badge: 'Badge Text',
+    href: '/path', // null for non-clickable
+  }
+];
+
+// Interactive Styling:
+- Hover: translate-y-[-4px]
+- Cursor: pointer on cards with href
+- Grid: 5 columns (desktop), 2 (tablet), 1 (mobile)
+```
+
+### Navigation Hierarchy
+1. **Primary:** Header navigation (always visible)
+2. **Secondary:** Feature cards (discovery on home)
+3. **Tertiary:** CTA buttons (calls-to-action)
+
 ## Layout Patterns
 
 ### Responsive Grid
@@ -517,6 +559,29 @@ Potential additions (not implemented):
 ---
 
 ## Changelog
+
+### v1.2.0 (2025-11-25)
+**Navigation Patterns Enhancement**
+
+**Navigation System:**
+- Added navigation patterns section documenting header, feature cards, and CTA hierarchy
+- Documented Leave Management navigation implementation
+- Added guidelines for clickable feature cards with hover effects
+- Defined 3-tier navigation hierarchy (primary/secondary/tertiary)
+
+**Header Navigation:**
+- Added "Leave Management" with CalendarDays icon
+- Consistent 4-item navigation: Home, CSV Converter, Attendance Processor, Leave Management
+
+**Home Page Updates:**
+- Extended feature grid to 5 columns (desktop) to include Leave Management
+- Made feature cards interactive with hover animations
+- Added "Manage Leaves" button to CTA section with warning variant
+
+**Design Decisions:**
+- Icon: CalendarDays (semantic fit for time-off management)
+- Color: Warning variant (yellow) for visual differentiation
+- Layout: Maintained responsive breakpoints (5→2→1 columns)
 
 ### v1.1.0 (2025-11-10)
 **Analytics Chart Fixes**

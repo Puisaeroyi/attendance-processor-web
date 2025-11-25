@@ -1,6 +1,6 @@
 'use client';
 
-import { FileText, Upload, Zap, Shield, Clock } from 'lucide-react';
+import { FileText, Upload, Zap, Shield, Clock, CalendarDays } from 'lucide-react';
 import Link from 'next/link';
 import {
   Button,
@@ -19,24 +19,35 @@ export default function Home() {
       title: 'CSV Converter',
       description: 'Convert and transform CSV files with advanced processing capabilities',
       badge: 'Fast',
+      href: '/converter',
     },
     {
       icon: Upload,
       title: 'Attendance Processing',
       description: 'Process attendance data with burst detection and shift grouping',
       badge: 'Powerful',
+      href: '/processor',
+    },
+    {
+      icon: CalendarDays,
+      title: 'Leave Management',
+      description: 'Manage employee leave requests with Google Forms integration',
+      badge: 'Organized',
+      href: '/leave-management',
     },
     {
       icon: Zap,
       title: 'Lightning Speed',
       description: 'Handle 10,000+ records in under 10 seconds',
       badge: 'Optimized',
+      href: null,
     },
     {
       icon: Shield,
       title: 'Secure & Reliable',
       description: 'Enterprise-grade security with data validation',
       badge: 'Secure',
+      href: null,
     },
   ];
 
@@ -86,24 +97,39 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="grid gap-nb-6 md:grid-cols-2 lg:grid-cols-4">
-            {features.map((feature, index) => (
-              <Card
-                key={index}
-                variant={index === 0 ? 'primary' : index === 1 ? 'success' : 'default'}
-              >
-                <CardHeader>
-                  <div className="mb-nb-4 flex items-center justify-between">
-                    <div className="rounded-nb bg-nb-gray-100 p-nb-3 border-nb-2 border-nb-black shadow-nb-sm">
-                      <feature.icon className="h-6 w-6 text-nb-black" />
+          <div className="grid gap-nb-6 md:grid-cols-2 lg:grid-cols-5">
+            {features.map((feature, index) => {
+              const cardContent = (
+                <Card
+                  key={index}
+                  variant={
+                    index === 0 ? 'primary' : index === 1 ? 'success' : index === 2 ? 'warning' : 'default'
+                  }
+                  className={feature.href ? 'cursor-pointer transition-transform hover:translate-y-[-4px]' : ''}
+                >
+                  <CardHeader>
+                    <div className="mb-nb-4 flex items-center justify-between">
+                      <div className="rounded-nb bg-nb-gray-100 p-nb-3 border-nb-2 border-nb-black shadow-nb-sm">
+                        <feature.icon className="h-6 w-6 text-nb-black" />
+                      </div>
+                      <Badge variant={index % 3 === 0 ? 'success' : index % 3 === 1 ? 'primary' : 'warning'}>
+                        {feature.badge}
+                      </Badge>
                     </div>
-                    <Badge variant={index % 2 === 0 ? 'success' : 'primary'}>{feature.badge}</Badge>
-                  </div>
-                  <CardTitle>{feature.title}</CardTitle>
-                  <CardDescription>{feature.description}</CardDescription>
-                </CardHeader>
-              </Card>
-            ))}
+                    <CardTitle>{feature.title}</CardTitle>
+                    <CardDescription>{feature.description}</CardDescription>
+                  </CardHeader>
+                </Card>
+              );
+
+              return feature.href ? (
+                <Link key={index} href={feature.href}>
+                  {cardContent}
+                </Link>
+              ) : (
+                cardContent
+              );
+            })}
           </div>
         </div>
       </section>
@@ -156,6 +182,11 @@ export default function Home() {
                 <Link href="/converter">
                   <Button size="lg" variant="success">
                     Try Converter
+                  </Button>
+                </Link>
+                <Link href="/leave-management">
+                  <Button size="lg" variant="warning">
+                    Manage Leaves
                   </Button>
                 </Link>
               </div>

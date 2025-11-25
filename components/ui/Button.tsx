@@ -10,25 +10,25 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant = 'primary', size = 'md', children, disabled, ...props }, ref) => {
     const baseStyles =
-      'inline-flex items-center justify-center font-bold uppercase tracking-wide transition-all duration-150 ease-out border-nb-4 border-nb-black shadow-nb focus-visible:outline-none focus-visible:outline-4 focus-visible:outline-offset-2 disabled:opacity-50 disabled:cursor-not-allowed';
+      'inline-flex items-center justify-center font-bold uppercase tracking-wide transition-all duration-150 ease-out border-4 border-black shadow-lg focus-visible:outline-none focus-visible:outline-4 focus-visible:outline-offset-2 disabled:opacity-50 disabled:cursor-not-allowed';
 
     const variantStyles = {
       primary:
-        'bg-nb-blue text-nb-white hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-nb-lg active:translate-x-0 active:translate-y-0 active:shadow-nb-sm focus-visible:outline-nb-blue',
+        'bg-blue-600 text-white hover:-translate-x-1 hover:-translate-y-1 hover:shadow-xl active:translate-x-0 active:translate-y-0 active:shadow-lg focus-visible:outline-blue-600',
       secondary:
-        'bg-nb-purple text-nb-white hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-nb-lg active:translate-x-0 active:translate-y-0 active:shadow-nb-sm focus-visible:outline-nb-purple',
+        'bg-purple-600 text-white hover:-translate-x-1 hover:-translate-y-1 hover:shadow-xl active:translate-x-0 active:translate-y-0 active:shadow-lg focus-visible:outline-purple-600',
       success:
-        'bg-nb-green text-nb-white hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-nb-lg active:translate-x-0 active:translate-y-0 active:shadow-nb-sm focus-visible:outline-nb-green',
+        'bg-green-600 text-white hover:-translate-x-1 hover:-translate-y-1 hover:shadow-xl active:translate-x-0 active:translate-y-0 active:shadow-lg focus-visible:outline-green-600',
       warning:
-        'bg-nb-yellow text-nb-black hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-nb-lg active:translate-x-0 active:translate-y-0 active:shadow-nb-sm focus-visible:outline-nb-yellow',
+        'bg-yellow-400 text-black hover:-translate-x-1 hover:-translate-y-1 hover:shadow-xl active:translate-x-0 active:translate-y-0 active:shadow-lg focus-visible:outline-yellow-400',
       error:
-        'bg-nb-red text-nb-white hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-nb-lg active:translate-x-0 active:translate-y-0 active:shadow-nb-sm focus-visible:outline-nb-red',
+        'bg-red-600 text-white hover:-translate-x-1 hover:-translate-y-1 hover:shadow-xl active:translate-x-0 active:translate-y-0 active:shadow-lg focus-visible:outline-red-600',
     };
 
     const sizeStyles = {
-      sm: 'px-nb-4 py-nb-2 text-sm',
-      md: 'px-nb-6 py-nb-3 text-base',
-      lg: 'px-nb-8 py-nb-4 text-lg',
+      sm: 'px-4 py-2 text-sm',
+      md: 'px-6 py-3 text-base',
+      lg: 'px-8 py-4 text-lg',
     };
 
     return (

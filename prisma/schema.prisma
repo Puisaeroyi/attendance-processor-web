@@ -1,0 +1,79 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model LeaveRequest {
+  id              Int              @id @default(autoincrement())
+  formResponseId  String           @unique @map("form_response_id")
+  employeeName    String           @map("employee_name")
+  managerName     String           @map("manager_name")
+  leaveType       String           @map("leave_type")
+  startDate       DateTime         @map("start_date")
+  endDate         DateTime         @map("end_date")
+  shiftType       String           @map("shift_type")
+  reason          String
+  status          String           @default("PENDING")
+  durationDays    Int              @map("duration_days")
+  submittedAt     DateTime         @map("submitted_at")
+  createdAt       DateTime         @default(now()) @map("created_at")
+  updatedAt       DateTime         @updatedAt @map("updated_at")
+
+  // Soft delete and archive fields
+  archivedAt      DateTime?        @map("archived_at")
+  deletedAt       DateTime?        @map("deleted_at")
+  archivedBy      String?          @map("archived_by")
+  deletedBy       String?          @map("deleted_by")
+  archiveReason   String?          @map("archive_reason")
+  deleteReason    String?          @map("delete_reason")
+
+  approvals       LeaveApproval[]
+  auditLogs       AuditLog[]
+
+  @@index([status])
+  @@index([employeeName])
+  @@index([managerName])
+  @@index([startDate, endDate])
+  @@index([archivedAt])
+  @@index([deletedAt])
+  @@index([status, archivedAt])
+  @@map("leave_requests")
+}
+
+model LeaveApproval {
+  id          Int          @id @default(autoincrement())
+  requestId   Int          @map("request_id")
+  action      String
+  adminNotes  String?      @map("admin_notes")
+  approvedBy  String       @map("approved_by")
+  approvedAt  DateTime     @default(now()) @map("approved_at")
+
+  request     LeaveRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+
+  @@index([requestId])
+  @@map("leave_approvals")
+}
+
+model AuditLog {
+  id          Int           @id @default(autoincrement())
+  entityType  String        @map("entity_type")
+  entityId    Int           @map("entity_id")
+  action      String
+  performedBy String        @map("performed_by")
+  timestamp   DateTime      @default(now())
+  details     String?
+
+  request     LeaveRequest? @relation(fields: [entityId], references: [id], onDelete: Cascade)
+
+  @@index([entityType, entityId])
+  @@index([performedBy])
+  @@index([timestamp])
+  @@map("audit_log")
+}

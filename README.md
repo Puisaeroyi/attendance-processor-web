@@ -11,6 +11,47 @@ Modern web application for processing biometric attendance data with optimized O
 - **Analytics Dashboard**: Real-time visualization with Recharts
 - **Type-Safe**: Full TypeScript with strict mode
 
+## Leave Management System
+
+A comprehensive leave request management system integrated with Google Forms, featuring advanced data management capabilities.
+
+### Core Features
+- **Google Forms Integration**: Automatically sync leave requests from Google Forms
+- **HR Dashboard**: Modern UI for managing leave requests with real-time updates
+- **Approval Workflow**: Approve or deny leave requests with complete audit trail
+- **Real-time Stats**: Dashboard with key metrics and analytics
+- **Advanced Filtering**: Search and filter requests by status, employee, manager, type, and archival state
+- **Soft Delete & Archive**: Safe deletion with 7-day grace period and archiving capabilities
+- **Role-based Access Control**: Admin (archive/delete) and HR (archive only) permissions
+- **Complete Audit Log**: Track all archive/delete operations with reasons and timestamps
+
+### Advanced Data Management
+- **Archive Functionality**: Hide requests from main view while preserving data
+- **Soft Delete**: Remove requests with 7-day recovery period
+- **Enhanced Filtering**: Show archived and deleted requests independently
+- **Dashboard Statistics**: Real-time counts for archived and deleted requests
+- **Confirmation Modals**: 4-step confirmation process for safety
+- **Transaction Safety**: Atomic operations ensure data integrity
+- **54 Comprehensive Tests**: 100% pass rate ensuring reliability
+
+### API Endpoints
+- `GET /api/v1/leave/requests` - List requests with archival/deletion filtering
+- `POST /api/v1/leave/requests/{id}/archive` - Archive specific request
+- `DELETE /api/v1/leave/requests/{id}/delete` - Soft delete request
+- `POST /api/v1/leave/requests/{id}/unarchive` - Restore archived request
+- `POST /api/v1/leave/requests/{id}/restore` - Restore deleted request (within 7 days)
+- `POST /api/v1/leave/approve` - Approve leave requests
+- `POST /api/v1/leave/deny` - Deny leave requests
+- `GET /api/v1/leave/stats` - Dashboard statistics
+- `POST /api/v1/leave/sync` - Manual Google Forms synchronization
+
+### Database Schema
+- **Soft Delete Fields**: `archivedAt`, `deletedAt`, `archivedBy`, `deletedBy`, `archiveReason`, `deleteReason`
+- **Performance Indexes**: Optimized queries for archival and deletion operations
+- **Migration**: `20251125171208_add_soft_delete_fields` for seamless upgrade
+
+For detailed setup instructions, see [LEAVE_MANAGEMENT_README.md](./LEAVE_MANAGEMENT_README.md).
+
 ## Quick Start
 
 ### Prerequisites

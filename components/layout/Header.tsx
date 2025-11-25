@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { FileText, Upload } from 'lucide-react';
+import { FileText, Upload, CalendarDays } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export default function Header() {
@@ -10,6 +10,7 @@ export default function Header() {
     { name: 'Home', href: '/', icon: null },
     { name: 'CSV Converter', href: '/converter', icon: FileText },
     { name: 'Attendance Processor', href: '/processor', icon: Upload },
+    { name: 'Leave Management', href: '/leave-management', icon: CalendarDays },
   ];
 
   return (
