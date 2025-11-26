@@ -1,6 +1,6 @@
 import { google } from 'googleapis'
-import * as fs from 'fs'
-import * as path from 'path'
+import type { forms_v1 } from 'googleapis'
+import type { GoogleFormResponse, FormMetadata } from '../types/googleForms'
 
 // Configuration
 const FORM_ID = '1qn-mIxu4sCUFN3gqdW5vdnNLfuCvI13DBXCBaDf257o'
@@ -11,8 +11,8 @@ const SERVICE_ACCOUNT_PATH = process.env.GOOGLE_SERVICE_ACCOUNT_PATH || '/home/s
  * Authenticates with service account and fetches form responses
  */
 export class GoogleFormsPoller {
-  private auth: any
-  private forms: any
+  private auth: InstanceType<typeof google.auth.GoogleAuth>
+  private forms: forms_v1.Forms
 
   constructor() {
     // Initialize Google Auth with service account
@@ -30,32 +30,34 @@ export class GoogleFormsPoller {
   /**
    * Fetch all form responses
    */
-  async fetchFormResponses() {
+  async fetchFormResponses(): Promise<GoogleFormResponse[]> {
     try {
       const response = await this.forms.forms.responses.list({
         formId: FORM_ID,
       })
 
-      return response.data.responses || []
-    } catch (error: any) {
-      console.error('Error fetching form responses:', error.message)
-      throw new Error(`Failed to fetch form responses: ${error.message}`)
+      return (response.data.responses as GoogleFormResponse[]) || []
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+      console.error('Error fetching form responses:', errorMessage)
+      throw new Error(`Failed to fetch form responses: ${errorMessage}`)
     }
   }
 
   /**
    * Get form metadata (questions, structure)
    */
-  async getFormMetadata() {
+  async getFormMetadata(): Promise<FormMetadata> {
     try {
       const response = await this.forms.forms.get({
         formId: FORM_ID,
       })
 
-      return response.data
-    } catch (error: any) {
-      console.error('Error fetching form metadata:', error.message)
-      throw new Error(`Failed to fetch form metadata: ${error.message}`)
+      return response.data as FormMetadata
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+      console.error('Error fetching form metadata:', errorMessage)
+      throw new Error(`Failed to fetch form metadata: ${errorMessage}`)
     }
   }
 

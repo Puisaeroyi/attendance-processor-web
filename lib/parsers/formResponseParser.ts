@@ -3,6 +3,8 @@
  * Parses form responses and converts them to leave request format
  */
 
+import { GoogleFormResponse } from '../types/googleForms'
+
 // Question ID mapping for the Google Form
 // These IDs must match your actual Google Form question IDs
 const QUESTION_ID_MAP = {
@@ -13,13 +15,6 @@ const QUESTION_ID_MAP = {
   endDate: '05aca5bc',         // Leave End Date
   shiftType: '597d2161',       // FHS/ SHS/ FS
   reason: '3d8f8e20'           // Reason for Leave
-}
-
-interface FormResponse {
-  responseId: string
-  createTime: string
-  lastSubmittedTime: string
-  answers?: Record<string, any>
 }
 
 interface ParsedLeaveRequest {
@@ -38,7 +33,7 @@ interface ParsedLeaveRequest {
 /**
  * Parse a single form response
  */
-export function parseFormResponse(response: FormResponse): ParsedLeaveRequest | null {
+export function parseFormResponse(response: GoogleFormResponse): ParsedLeaveRequest | null {
   try {
     if (!response.answers) {
       console.warn(`Response ${response.responseId} has no answers`)
@@ -54,6 +49,11 @@ export function parseFormResponse(response: FormResponse): ParsedLeaveRequest | 
     // Handle both textAnswers (Short Answer, Date) and Multiple Choice answers
     Object.keys(answers).forEach((questionId) => {
       const answer = answers[questionId]
+
+      // Skip if answer is undefined
+      if (!answer) {
+        return
+      }
 
       // Try textAnswers first (Short Answer, Paragraph, Date fields)
       if (answer.textAnswers?.answers?.[0]?.value) {
@@ -132,7 +132,7 @@ export function parseFormResponse(response: FormResponse): ParsedLeaveRequest | 
 /**
  * Parse multiple form responses
  */
-export function parseFormResponses(responses: FormResponse[]): ParsedLeaveRequest[] {
+export function parseFormResponses(responses: GoogleFormResponse[]): ParsedLeaveRequest[] {
   const parsed: ParsedLeaveRequest[] = []
 
   for (const response of responses) {
