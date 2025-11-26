@@ -48,7 +48,12 @@ export function calculateUserStats(records: AttendanceRecord[]): UserStats[] {
     const latePercentage = totalRecords > 0 ? (lateCount / totalRecords) * 100 : 0;
     const soonPercentage = totalRecords > 0 ? (soonCount / totalRecords) * 100 : 0;
     const onTimePercentage = totalRecords > 0 ? (onTimeCount / totalRecords) * 100 : 0;
-    const deviationPercentage = latePercentage + soonPercentage;
+
+    // Round each percentage first, then calculate deviation to avoid floating point errors
+    const roundedLatePercentage = Math.round(latePercentage * 10) / 10;
+    const roundedSoonPercentage = Math.round(soonPercentage * 10) / 10;
+    const roundedOnTimePercentage = Math.round(onTimePercentage * 10) / 10;
+    const deviationPercentage = roundedLatePercentage + roundedSoonPercentage;
 
     return {
       userName,
@@ -56,9 +61,9 @@ export function calculateUserStats(records: AttendanceRecord[]): UserStats[] {
       lateCount,
       onTimeCount,
       soonCount,
-      latePercentage: Math.round(latePercentage * 10) / 10,
-      onTimePercentage: Math.round(onTimePercentage * 10) / 10,
-      soonPercentage: Math.round(soonPercentage * 10) / 10,
+      latePercentage: roundedLatePercentage,
+      onTimePercentage: roundedOnTimePercentage,
+      soonPercentage: roundedSoonPercentage,
       deviationPercentage: Math.round(deviationPercentage * 10) / 10,
     };
   });
@@ -175,7 +180,8 @@ export function generateSummaryStats(records: AttendanceRecord[]): SummaryStats 
     ? Math.round((totalOnTime / totalRecords) * 100 * 10) / 10
     : 0;
 
-  const deviationPercentage = latePercentage + soonPercentage;
+  // Round deviation to avoid floating point errors
+  const deviationPercentage = Math.round((latePercentage + soonPercentage) * 10) / 10;
 
   // Get unique users and calculate average attendance
   const uniqueUsers = new Set(records.map((r) => r.name)).size;
@@ -201,10 +207,13 @@ export function generateSummaryStats(records: AttendanceRecord[]): SummaryStats 
  * Transform attendance records into complete analytics data
  */
 export function transformToAnalytics(records: AttendanceRecord[]): AnalyticsData {
+  // Filter out "Nguyen Thanh Thao Nguyen" from analytics
+  const filteredRecords = records.filter(record => record.name !== 'Nguyen Thanh Thao Nguyen');
+
   return {
-    userStats: calculateUserStats(records),
-    shiftDistribution: calculateShiftDistribution(records),
-    trends: calculateTrends(records),
-    summary: generateSummaryStats(records),
+    userStats: calculateUserStats(filteredRecords),
+    shiftDistribution: calculateShiftDistribution(filteredRecords),
+    trends: calculateTrends(filteredRecords),
+    summary: generateSummaryStats(filteredRecords),
   };
 }

@@ -293,5 +293,146 @@ describe('Data Transformers', () => {
       expect(analytics.trends).toEqual([]);
       expect(analytics.summary.totalRecords).toBe(0);
     });
+
+    it('should exclude "Nguyen Thanh Thao Nguyen" from analytics', () => {
+      const recordsWithThaoNguyen: AttendanceRecord[] = [
+        ...mockRecords,
+        {
+          date: new Date('2024-01-04'),
+          id: '006',
+          name: 'Nguyen Thanh Thao Nguyen',
+          shift: 'A',
+          checkIn: '08:00:00',
+          breakOut: '12:00:00',
+          breakIn: '13:00:00',
+          checkOut: '17:00:00',
+          status: 'On Time',
+          totalHours: 8,
+          overtime: 0,
+        },
+        {
+          date: new Date('2024-01-05'),
+          id: '007',
+          name: 'Nguyen Thanh Thao Nguyen',
+          shift: 'B',
+          checkIn: '13:00:00',
+          breakOut: '17:00:00',
+          breakIn: '18:00:00',
+          checkOut: '22:00:00',
+          status: 'Late Check-in',
+          totalHours: 8,
+          overtime: 0,
+        },
+      ];
+
+      const analytics = transformToAnalytics(recordsWithThaoNguyen);
+
+      // Verify Thao Nguyen is NOT in user stats
+      const thaoNguyenStats = analytics.userStats.find(
+        (s) => s.userName === 'Nguyen Thanh Thao Nguyen'
+      );
+      expect(thaoNguyenStats).toBeUndefined();
+
+      // Verify other users are still present
+      expect(analytics.userStats.some((s) => s.userName === 'Silver_Bui')).toBe(true);
+      expect(analytics.userStats.some((s) => s.userName === 'Capone')).toBe(true);
+      expect(analytics.userStats.some((s) => s.userName === 'Minh')).toBe(true);
+      expect(analytics.userStats.some((s) => s.userName === 'Trieu')).toBe(true);
+
+      // Verify total records exclude Thao Nguyen's records
+      expect(analytics.summary.totalRecords).toBe(5); // Original 5, not 7
+      expect(analytics.summary.uniqueUsers).toBe(4); // 4 users, not 5
+    });
+
+    it('should format deviation percentages with max 1 decimal place', () => {
+      // Create records that would produce floating point errors without proper rounding
+      const testRecords: AttendanceRecord[] = [
+        {
+          date: new Date('2024-01-01'),
+          id: '001',
+          name: 'TestUser',
+          shift: 'A',
+          checkIn: '08:00:00',
+          breakOut: '12:00:00',
+          breakIn: '13:00:00',
+          checkOut: '17:00:00',
+          status: 'Late Check-in',
+          totalHours: 8,
+          overtime: 0,
+        },
+        {
+          date: new Date('2024-01-02'),
+          id: '002',
+          name: 'TestUser',
+          shift: 'A',
+          checkIn: '08:00:00',
+          breakOut: '12:00:00',
+          breakIn: '13:00:00',
+          checkOut: '17:00:00',
+          status: 'Leave Soon Check Out',
+          totalHours: 8,
+          overtime: 0,
+        },
+        {
+          date: new Date('2024-01-03'),
+          id: '003',
+          name: 'TestUser',
+          shift: 'A',
+          checkIn: '08:00:00',
+          breakOut: '12:00:00',
+          breakIn: '13:00:00',
+          checkOut: '17:00:00',
+          status: 'On Time',
+          totalHours: 8,
+          overtime: 0,
+        },
+        {
+          date: new Date('2024-01-04'),
+          id: '004',
+          name: 'TestUser',
+          shift: 'A',
+          checkIn: '08:00:00',
+          breakOut: '12:00:00',
+          breakIn: '13:00:00',
+          checkOut: '17:00:00',
+          status: 'On Time',
+          totalHours: 8,
+          overtime: 0,
+        },
+        {
+          date: new Date('2024-01-05'),
+          id: '005',
+          name: 'TestUser',
+          shift: 'A',
+          checkIn: '08:00:00',
+          breakOut: '12:00:00',
+          breakIn: '13:00:00',
+          checkOut: '17:00:00',
+          status: 'On Time',
+          totalHours: 8,
+          overtime: 0,
+        },
+      ];
+
+      const analytics = transformToAnalytics(testRecords);
+
+      // Check user stats deviation percentage
+      const userStats = analytics.userStats[0];
+      expect(userStats.deviationPercentage).toBe(40); // 20% late + 20% soon = 40%
+
+      // Verify it's a clean number, not something like 40.00000000000001
+      expect(userStats.deviationPercentage.toString()).not.toContain('000000');
+
+      // Verify decimal places
+      const decimalPlaces = userStats.deviationPercentage.toString().split('.')[1]?.length || 0;
+      expect(decimalPlaces).toBeLessThanOrEqual(1);
+
+      // Check summary stats deviation percentage
+      expect(analytics.summary.deviationPercentage).toBe(40);
+      expect(analytics.summary.deviationPercentage.toString()).not.toContain('000000');
+
+      const summaryDecimalPlaces = analytics.summary.deviationPercentage.toString().split('.')[1]?.length || 0;
+      expect(summaryDecimalPlaces).toBeLessThanOrEqual(1);
+    });
   });
 });
