@@ -15,15 +15,17 @@ interface StatsProps {
     recentRequests: unknown[]
     upcomingLeaves: unknown[]
   }
+  userRole?: 'admin' | 'hr' | 'manager' | 'user'
 }
 
-export function DashboardStats({ stats }: StatsProps) {
+export function DashboardStats({ stats, userRole = 'user' }: StatsProps) {
   const { overview } = stats
+  const isAdmin = userRole === 'admin' || userRole === 'hr'
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       {/* Primary Stats Card */}
-      <div className="lg:col-span-2">
+      <div className={isAdmin ? "lg:col-span-2" : "lg:col-span-2"}>
         <PrimaryStatsCard
           total={overview.total}
           pending={overview.pending}
@@ -32,17 +34,21 @@ export function DashboardStats({ stats }: StatsProps) {
         />
       </div>
 
-      {/* Removed Items Card */}
-      <ConsolidatedRemovedCard
-        archived={overview.archived || 0}
-        deleted={overview.deleted || 0}
-        expiringSoon={overview.expiringSoon || 0}
-      />
+      {/* Removed Items Card - Only for Admin/HR */}
+      {isAdmin && (
+        <ConsolidatedRemovedCard
+          archived={overview.archived || 0}
+          deleted={overview.deleted || 0}
+          expiringSoon={overview.expiringSoon || 0}
+        />
+      )}
 
-      {/* Days Off Card */}
-      <DaysOffCard
-        approvedDays={overview.approvedDaysThisMonth}
-      />
+      {/* Days Off Card - Only for Admin/HR */}
+      {isAdmin && (
+        <DaysOffCard
+          approvedDays={overview.approvedDaysThisMonth}
+        />
+      )}
     </div>
   )
 }

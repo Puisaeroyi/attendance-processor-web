@@ -265,7 +265,7 @@ export default function LeaveManagementClient({ userRole, userName = '' }: Leave
         defaultFullName={userName}
       />
 
-      {stats && userRole !== 'user' && <DashboardStats stats={stats} />}
+      {stats && userRole !== 'user' && <DashboardStats stats={stats} userRole={userRole} />}
 
       {/* Filters */}
       <div className="bg-white/15 backdrop-blur-md border border-white/20 rounded-2xl p-6 shadow-[0_8px_32px_rgba(31,38,135,0.15)]">
@@ -283,8 +283,8 @@ export default function LeaveManagementClient({ userRole, userName = '' }: Leave
               <option value="PENDING" className="bg-gray-800">Pending</option>
               <option value="APPROVED" className="bg-gray-800">Approved</option>
               <option value="DENIED" className="bg-gray-800">Denied</option>
-              {userRole !== 'user' && <option value="ARCHIVED" className="bg-gray-800">Archived</option>}
-              {userRole !== 'user' && <option value="DELETED" className="bg-gray-800">Deleted</option>}
+              {userRole === 'admin' && <option value="ARCHIVED" className="bg-gray-800">Archived</option>}
+              {userRole === 'admin' && <option value="DELETED" className="bg-gray-800">Deleted</option>}
             </select>
           </div>
 
