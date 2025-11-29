@@ -11,6 +11,9 @@ if (!process.env.SESSION_SECRET && process.env.NODE_ENV === 'production') {
 
 const secretKey = new TextEncoder().encode(process.env.SESSION_SECRET || 'dev-secret-not-for-production')
 
+// Allow disabling secure cookies for HTTP-only environments
+const useSecureCookies = process.env.SECURE_COOKIES !== 'false' && process.env.NODE_ENV === 'production'
+
 export async function encrypt(payload: SessionPayload): Promise<string> {
   return new SignJWT(payload)
     .setProtectedHeader({ alg: 'HS256' })
@@ -47,7 +50,7 @@ export async function createSession(userId: string, username: string, role: stri
 
   cookieStore.set('session', session, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
+    secure: useSecureCookies,
     expires: expiresAt,
     sameSite: 'lax',
     path: '/',
@@ -67,7 +70,7 @@ export async function updateSession(): Promise<void> {
   const cookieStore = await cookies()
   cookieStore.set('session', session, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
+    secure: useSecureCookies,
     expires: expires,
     sameSite: 'lax',
     path: '/',

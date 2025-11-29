@@ -52,8 +52,14 @@ export function LeaveRequestForm({ isOpen, onClose, onSubmit, defaultFullName = 
   const [loading, setLoading] = useState(false)
   const [errors, setErrors] = useState<Partial<Record<keyof LeaveRequestFormData, string>>>({})
 
+  const getTodayString = (): string => {
+    const today = new Date()
+    return today.toISOString().split('T')[0]
+  }
+
   const validateForm = (): boolean => {
     const newErrors: Partial<Record<keyof LeaveRequestFormData, string>> = {}
+    const today = getTodayString()
 
     if (!formData.fullName.trim()) {
       newErrors.fullName = 'Full name is required'
@@ -66,9 +72,13 @@ export function LeaveRequestForm({ isOpen, onClose, onSubmit, defaultFullName = 
     }
     if (!formData.startDate) {
       newErrors.startDate = 'Start date is required'
+    } else if (formData.startDate < today) {
+      newErrors.startDate = 'Start date cannot be in the past'
     }
     if (!formData.endDate) {
       newErrors.endDate = 'End date is required'
+    } else if (formData.endDate < today) {
+      newErrors.endDate = 'End date cannot be in the past'
     }
     if (formData.startDate && formData.endDate && new Date(formData.startDate) > new Date(formData.endDate)) {
       newErrors.endDate = 'End date must be after start date'
@@ -196,6 +206,7 @@ export function LeaveRequestForm({ isOpen, onClose, onSubmit, defaultFullName = 
                 type="date"
                 value={formData.startDate}
                 onChange={(e) => handleChange('startDate', e.target.value)}
+                min={getTodayString()}
                 className={`w-full px-4 py-3 bg-white/10 backdrop-blur-sm border rounded-xl text-white focus:outline-none focus:border-white/40 focus:ring-2 focus:ring-white/20 transition-all ${
                   errors.startDate ? 'border-red-400/60' : 'border-white/20'
                 }`}
@@ -210,6 +221,7 @@ export function LeaveRequestForm({ isOpen, onClose, onSubmit, defaultFullName = 
                 type="date"
                 value={formData.endDate}
                 onChange={(e) => handleChange('endDate', e.target.value)}
+                min={formData.startDate || getTodayString()}
                 className={`w-full px-4 py-3 bg-white/10 backdrop-blur-sm border rounded-xl text-white focus:outline-none focus:border-white/40 focus:ring-2 focus:ring-white/20 transition-all ${
                   errors.endDate ? 'border-red-400/60' : 'border-white/20'
                 }`}

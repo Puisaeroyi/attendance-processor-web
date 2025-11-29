@@ -153,39 +153,12 @@ export default function LoginPage() {
                 'Sign In'
               )}
             </button>
-
-            {/* Divider */}
-            <div className="relative my-6">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-200"></div>
-              </div>
-              <div className="relative flex justify-center text-xs">
-                <span className="px-2 bg-white text-gray-500">Available Users</span>
-              </div>
-            </div>
-
-            {/* User Credentials */}
-            <div className="grid grid-cols-3 gap-3 text-xs text-gray-600">
-              <div className="border border-gray-200 rounded-lg p-3 text-center hover:border-blue-300 transition-colors cursor-pointer" title="admin">
-                <span className="font-medium">admin</span>
-                <p className="text-gray-400 text-[10px]">ADMIN</p>
-              </div>
-              <div className="border border-gray-200 rounded-lg p-3 text-center hover:border-blue-300 transition-colors cursor-pointer" title="thomas">
-                <span className="font-medium">thomas</span>
-                <p className="text-gray-400 text-[10px]">MANAGER</p>
-              </div>
-              <div className="border border-gray-200 rounded-lg p-3 text-center hover:border-blue-300 transition-colors cursor-pointer" title="silver">
-                <span className="font-medium">silver</span>
-                <p className="text-gray-400 text-[10px]">USER</p>
-              </div>
-            </div>
-            <p className="text-xs text-gray-400 text-center">Password: TempPassword123!</p>
           </form>
         </div>
 
         {/* Footer */}
         <div className="text-center text-sm text-gray-500">
-          <p>© 2024 Attendance Pro. All rights reserved.</p>
+          <p>© 2025 Attendance Pro. All rights reserved.</p>
         </div>
       </div>
 

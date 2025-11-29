@@ -91,6 +91,31 @@ export async function POST(request: NextRequest) {
     // Calculate duration
     const start = new Date(startDate)
     const end = new Date(endDate)
+    
+    // Validate dates are not in the past
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    
+    if (start < today) {
+      return NextResponse.json(
+        { success: false, error: 'Start date cannot be in the past' },
+        { status: 400 }
+      )
+    }
+    
+    if (end < today) {
+      return NextResponse.json(
+        { success: false, error: 'End date cannot be in the past' },
+        { status: 400 }
+      )
+    }
+    
+    if (end < start) {
+      return NextResponse.json(
+        { success: false, error: 'End date must be after start date' },
+        { status: 400 }
+      )
+    }
     const diffTime = Math.abs(end.getTime() - start.getTime())
     let durationDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1
 
