@@ -62,9 +62,24 @@ npm install
 
 ## 3. Environment Variables
 
-### 3.1 Create Environment File
+> **Important:** This project uses TWO environment files:
+> - `.env` - For Prisma CLI (database commands)
+> - `.env.local` - For Next.js runtime (app secrets)
 
-Create a file named `.env.local` in the project root:
+### 3.1 Create `.env` file (for Prisma)
+
+```bash
+# Windows: Create file manually
+# Linux/Mac:
+echo 'DATABASE_URL="file:./prisma/leave_management.db"' > .env
+```
+
+Contents of `.env`:
+```bash
+DATABASE_URL="file:./prisma/leave_management.db"
+```
+
+### 3.2 Create `.env.local` file (for Next.js)
 
 ```bash
 # Windows: Create file manually or use notepad
@@ -72,17 +87,13 @@ Create a file named `.env.local` in the project root:
 nano .env.local
 ```
 
-### 3.2 Add These Variables
-
+Contents of `.env.local`:
 ```bash
 # Session secret (required) - generate a random string
 SESSION_SECRET=<generate-with-openssl-rand-base64-32>
 
 # Admin password for initial users
 ADMIN_DEFAULT_PASSWORD=<your-secure-password-here>
-
-# Database path
-DATABASE_URL="file:./prisma/leave_management.db"
 
 # Feature flag
 NEXT_PUBLIC_MISSING_TS_HANDLING=true
