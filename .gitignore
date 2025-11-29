@@ -50,6 +50,7 @@ next-env.d.ts
 plans/
 *.md
 !README.md
+!walkthrough.md
 
 # temporary files
 *.tmp

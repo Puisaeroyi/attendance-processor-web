@@ -5,7 +5,8 @@ import { Prisma } from '@prisma/client'
  * Create a new leave request
  */
 export async function createLeaveRequest(data: {
-  formResponseId: string
+  formResponseId?: string
+  userId?: string
   employeeName: string
   managerName: string
   leaveType: string
@@ -19,8 +20,7 @@ export async function createLeaveRequest(data: {
   return await prisma.leaveRequest.create({
     data,
     include: {
-      approvals: true,
-      auditLogs: true
+      approvals: true
     }
   })
 }
@@ -37,6 +37,7 @@ export async function getLeaveRequests(filters?: {
   endDate?: Date
   includeArchived?: boolean
   includeDeleted?: boolean
+  userId?: string
 }) {
   const where: Prisma.LeaveRequestWhereInput = {}
 
@@ -78,6 +79,9 @@ export async function getLeaveRequests(filters?: {
   if (filters?.endDate) {
     where.endDate = { lte: filters.endDate }
   }
+  if (filters?.userId) {
+    where.userId = filters.userId
+  }
 
   return await prisma.leaveRequest.findMany({
     where,
@@ -106,8 +110,7 @@ export async function getLeaveRequestById(id: number) {
   return await prisma.leaveRequest.findUnique({
     where: { id },
     include: {
-      approvals: true,
-      auditLogs: true
+      approvals: true
     }
   })
 }
@@ -157,7 +160,8 @@ export async function approveRequest(
         entityId: requestId,
         action: 'APPROVED',
         performedBy: approvedBy,
-        details: JSON.stringify({ notes: adminNotes })
+        status: 'SUCCESS',
+        metadata: JSON.stringify({ notes: adminNotes })
       }
     })
 
@@ -200,7 +204,8 @@ export async function denyRequest(
         entityId: requestId,
         action: 'DENIED',
         performedBy: deniedBy,
-        details: JSON.stringify({ notes: adminNotes })
+        status: 'SUCCESS',
+        metadata: JSON.stringify({ notes: adminNotes })
       }
     })
 
@@ -303,7 +308,8 @@ export async function archiveRequest(
         entityId: requestId,
         action: 'ARCHIVED',
         performedBy: archivedBy,
-        details: JSON.stringify({
+        status: 'SUCCESS',
+        metadata: JSON.stringify({
           previousStatus: currentRequest.status,
           archiveReason: reason || null,
           timestamp: new Date().toISOString()
@@ -351,7 +357,8 @@ export async function deleteRequest(
         entityId: requestId,
         action: 'DELETED',
         performedBy: deletedBy,
-        details: JSON.stringify({
+        status: 'SUCCESS',
+        metadata: JSON.stringify({
           previousStatus: currentRequest.status,
           deleteReason: reason,
           timestamp: new Date().toISOString()
@@ -403,7 +410,8 @@ export async function unarchiveRequest(
         entityId: requestId,
         action: 'UNARCHIVED',
         performedBy: unarchivedBy,
-        details: JSON.stringify({
+        status: 'SUCCESS',
+        metadata: JSON.stringify({
           currentStatus: currentRequest.status,
           unarchiveReason: reason || null,
           timestamp: new Date().toISOString()
@@ -463,7 +471,8 @@ export async function restoreRequest(
         entityId: requestId,
         action: 'RESTORED',
         performedBy: restoredBy,
-        details: JSON.stringify({
+        status: 'SUCCESS',
+        metadata: JSON.stringify({
           restoredFromStatus: currentRequest.status,
           restoreReason: reason || null,
           timestamp: new Date().toISOString()

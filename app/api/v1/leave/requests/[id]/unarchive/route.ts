@@ -1,15 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { unarchiveRequest } from '@/lib/db/queries'
 import { UnarchiveActionSchema } from '@/lib/validators/leaveValidators'
+import { requireAuth } from '@/lib/api/auth'
 
 /**
  * POST /api/v1/leave/requests/{id}/unarchive
  * Unarchive a leave request
+ *
+ * @requires ADMIN role
  */
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  // Check authentication and authorization
+  const { user, response } = await requireAuth(['ADMIN'])
+  if (response) return response
+
   try {
     // Validate request ID
     const { id: requestIdStr } = await params

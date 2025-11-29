@@ -1,15 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { archiveRequest } from '@/lib/db/queries'
 import { ArchiveActionSchema } from '@/lib/validators/leaveValidators'
+import { requireAuth } from '@/lib/api/auth'
 
 /**
  * POST /api/v1/leave/requests/{id}/archive
  * Archive a leave request
+ *
+ * @requires ADMIN role
  */
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  // Check authentication and authorization
+  const { user, response } = await requireAuth(['ADMIN'])
+  if (response) return response
+
   try {
     // Validate request ID
     const { id: requestIdStr } = await params
@@ -42,10 +49,11 @@ export async function POST(
       )
     }
 
-    const { archivedBy, reason } = validation.data
+    const { reason } = validation.data
 
     // Archive the request
-    const updatedRequest = await archiveRequest(requestId, archivedBy, reason)
+    // Use authenticated user's email instead of client-provided name for security
+    const updatedRequest = await archiveRequest(requestId, user!.email, reason)
 
     return NextResponse.json({
       success: true,

@@ -2,7 +2,7 @@ import React from 'react';
 import { cn } from '@/lib/utils';
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'success' | 'warning' | 'error';
+  variant?: 'primary' | 'secondary' | 'success' | 'warning' | 'error' | 'ghost';
   size?: 'sm' | 'md' | 'lg';
   children: React.ReactNode;
 }
@@ -10,19 +10,21 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant = 'primary', size = 'md', children, disabled, ...props }, ref) => {
     const baseStyles =
-      'inline-flex items-center justify-center font-bold uppercase tracking-wide transition-all duration-150 ease-out border-4 border-black shadow-lg focus-visible:outline-none focus-visible:outline-4 focus-visible:outline-offset-2 disabled:opacity-50 disabled:cursor-not-allowed';
+      'inline-flex items-center justify-center font-semibold rounded-xl transition-all duration-300 backdrop-blur-sm border border-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95';
 
     const variantStyles = {
       primary:
-        'bg-blue-600 text-white hover:-translate-x-1 hover:-translate-y-1 hover:shadow-xl active:translate-x-0 active:translate-y-0 active:shadow-lg focus-visible:outline-blue-600',
+        'bg-gradient-to-r from-blue-500/80 to-purple-500/80 text-white hover:from-blue-500 hover:to-purple-500 hover:shadow-[0_0_20px_rgba(102,126,234,0.5)]',
       secondary:
-        'bg-purple-600 text-white hover:-translate-x-1 hover:-translate-y-1 hover:shadow-xl active:translate-x-0 active:translate-y-0 active:shadow-lg focus-visible:outline-purple-600',
+        'bg-white/15 text-white hover:bg-white/25 hover:shadow-[0_0_15px_rgba(255,255,255,0.2)]',
       success:
-        'bg-green-600 text-white hover:-translate-x-1 hover:-translate-y-1 hover:shadow-xl active:translate-x-0 active:translate-y-0 active:shadow-lg focus-visible:outline-green-600',
+        'bg-green-500/30 text-white border-green-400/40 hover:bg-green-500/50 hover:shadow-[0_0_15px_rgba(52,199,89,0.4)]',
       warning:
-        'bg-yellow-400 text-black hover:-translate-x-1 hover:-translate-y-1 hover:shadow-xl active:translate-x-0 active:translate-y-0 active:shadow-lg focus-visible:outline-yellow-400',
+        'bg-yellow-500/30 text-white border-yellow-400/40 hover:bg-yellow-500/50 hover:shadow-[0_0_15px_rgba(255,204,0,0.4)]',
       error:
-        'bg-red-600 text-white hover:-translate-x-1 hover:-translate-y-1 hover:shadow-xl active:translate-x-0 active:translate-y-0 active:shadow-lg focus-visible:outline-red-600',
+        'bg-red-500/30 text-white border-red-400/40 hover:bg-red-500/50 hover:shadow-[0_0_15px_rgba(255,59,48,0.4)]',
+      ghost:
+        'bg-transparent text-white/80 border-transparent hover:bg-white/10 hover:text-white',
     };
 
     const sizeStyles = {

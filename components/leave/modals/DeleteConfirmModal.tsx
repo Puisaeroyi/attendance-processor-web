@@ -1,13 +1,13 @@
 'use client'
 
 import { useState } from 'react'
-import { Button } from '@/components/ui'
+import { Trash2, X, AlertTriangle } from 'lucide-react'
 
 interface DeleteConfirmModalProps {
   isOpen: boolean
   onClose: () => void
-  onConfirm: (reason: string, deletedBy: string) => void
-  loading?: boolean
+  onConfirm: (reason: string, deletedBy: string) => Promise<void>
+  loading: boolean
   requestInfo: {
     employeeName: string
     leaveType: string
@@ -20,115 +20,90 @@ export function DeleteConfirmModal({
   isOpen,
   onClose,
   onConfirm,
-  loading = false,
+  loading,
   requestInfo
 }: DeleteConfirmModalProps) {
   const [reason, setReason] = useState('')
-  const [deletedBy, setDeletedBy] = useState('')
-
-  const handleConfirm = () => {
-    if (!reason.trim()) {
-      alert('Reason is required for deletion')
-      return
-    }
-    if (!deletedBy.trim()) {
-      alert('Your name is required for deletion')
-      return
-    }
-    onConfirm(reason.trim(), deletedBy.trim())
-  }
+  const [error, setError] = useState('')
 
   if (!isOpen) return null
 
+  const handleConfirm = async () => {
+    if (!reason.trim()) {
+      setError('Please provide a reason for deletion')
+      return
+    }
+    setError('')
+    await onConfirm(reason, 'Admin')
+    setReason('')
+  }
+
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white border-4 border-black shadow-lg max-w-md w-full">
-        <div className="p-6">
-          {/* Header */}
-          <div className="mb-6">
-            <h2 className="text-2xl font-black uppercase text-red-600 mb-2">Delete Leave Request</h2>
-            <div className="w-full h-1 bg-red-600 mb-4"></div>
-
-            {/* Warning Message */}
-            <div className="bg-red-50 border-2 border-red-600 p-4 mb-4">
-              <p className="text-red-800 font-bold text-sm uppercase">⚠️ Warning</p>
-              <p className="text-red-700 text-sm mt-1">
-                This action cannot be undone. The request will be marked as deleted and can only be restored within 7 days.
-              </p>
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
+      <div className="bg-white/20 backdrop-blur-xl border border-white/30 rounded-2xl p-6 max-w-md w-full mx-4 shadow-[0_8px_32px_rgba(31,38,135,0.3)] animate-glass-scale-in">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-red-500/20 rounded-xl">
+              <Trash2 className="w-6 h-6 text-red-300" />
             </div>
+            <h2 className="text-xl font-bold text-white">Delete Request</h2>
+          </div>
+          <button
+            onClick={onClose}
+            className="p-2 hover:bg-white/10 rounded-lg transition-colors text-white/70 hover:text-white"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
 
-            <p className="text-gray-700">
-              Are you sure you want to permanently delete this leave request?
+        <div className="bg-red-500/15 border border-red-400/30 rounded-xl p-4 mb-4 flex items-start gap-3">
+          <AlertTriangle className="w-5 h-5 text-red-300 flex-shrink-0 mt-0.5" />
+          <div>
+            <p className="text-red-200 text-sm font-medium">Warning: This action is destructive</p>
+            <p className="text-red-200/70 text-xs mt-1">
+              Deleted requests can only be restored within 7 days.
             </p>
           </div>
+        </div>
 
-          {/* Request Info */}
-          <div className="bg-gray-50 p-4 border-2 border-black mb-6">
-            <h3 className="font-bold text-sm uppercase mb-2">Request Details</h3>
-            <div className="space-y-1 text-sm">
-              <p><span className="font-semibold">Employee:</span> {requestInfo.employeeName}</p>
-              <p><span className="font-semibold">Type:</span> {requestInfo.leaveType}</p>
-              <p><span className="font-semibold">Dates:</span> {requestInfo.startDate} to {requestInfo.endDate}</p>
-            </div>
-          </div>
+        <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-4 mb-4">
+          <p className="text-sm text-white/90 font-medium">{requestInfo.employeeName}</p>
+          <p className="text-sm text-white/70">{requestInfo.leaveType}</p>
+          <p className="text-xs text-white/60 mt-1">
+            {requestInfo.startDate} - {requestInfo.endDate}
+          </p>
+        </div>
 
-          {/* Your Name Field (Required) */}
-          <div className="mb-4">
-            <label className="block text-sm font-bold uppercase mb-2">
-              Your Name <span className="text-red-600">*</span>
-            </label>
-            <input
-              type="text"
-              value={deletedBy}
-              onChange={(e) => setDeletedBy(e.target.value)}
-              placeholder="Enter your name"
-              className="w-full p-3 border-2 border-black focus:outline-none focus:ring-4 focus:ring-red-300"
-              disabled={loading}
-              required
-            />
-            {!deletedBy.trim() && (
-              <p className="text-red-600 text-xs mt-1">Your name is required</p>
-            )}
-          </div>
+        <div className="mb-6">
+          <label className="block text-sm font-medium text-white/90 mb-2">
+            Reason for deletion <span className="text-red-300">*</span>
+          </label>
+          <textarea
+            value={reason}
+            onChange={(e) => { setReason(e.target.value); setError(''); }}
+            placeholder="Enter reason for deletion..."
+            rows={2}
+            className={`w-full px-4 py-3 bg-white/10 backdrop-blur-sm border rounded-xl text-white placeholder:text-white/50 focus:outline-none focus:border-white/40 focus:ring-2 focus:ring-white/20 resize-none ${
+              error ? 'border-red-400/60' : 'border-white/20'
+            }`}
+          />
+          {error && <p className="text-red-300 text-sm mt-1">{error}</p>}
+        </div>
 
-          {/* Reason Field (Required) */}
-          <div className="mb-6">
-            <label className="block text-sm font-bold uppercase mb-2">
-              Reason for Deletion <span className="text-red-600">*</span>
-            </label>
-            <textarea
-              value={reason}
-              onChange={(e) => setReason(e.target.value)}
-              placeholder="Please provide a reason for deletion..."
-              rows={3}
-              className="w-full p-3 border-2 border-black focus:outline-none focus:ring-4 focus:ring-red-300"
-              disabled={loading}
-              required
-            />
-            {!reason.trim() && (
-              <p className="text-red-600 text-xs mt-1">Reason is required</p>
-            )}
-          </div>
-
-          {/* Actions */}
-          <div className="flex gap-4">
-            <Button
-              variant="secondary"
-              onClick={onClose}
-              disabled={loading}
-              className="flex-1"
-            >
-              Cancel
-            </Button>
-            <Button
-              variant="error"
-              onClick={handleConfirm}
-              disabled={loading || !reason.trim() || !deletedBy.trim()}
-              className="flex-1"
-            >
-              {loading ? 'Deleting...' : 'Delete Request'}
-            </Button>
-          </div>
+        <div className="flex gap-4">
+          <button
+            onClick={onClose}
+            className="flex-1 px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white font-medium hover:bg-white/20 transition-all"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleConfirm}
+            disabled={loading}
+            className="flex-1 px-4 py-3 bg-gradient-to-r from-red-500 to-pink-500 text-white font-semibold rounded-xl border border-white/20 hover:shadow-[0_0_20px_rgba(255,59,48,0.5)] transition-all disabled:opacity-50"
+          >
+            {loading ? 'Deleting...' : 'Delete'}
+          </button>
         </div>
       </div>
     </div>

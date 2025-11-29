@@ -1,12 +1,12 @@
 'use client'
 
-import { Button } from '@/components/ui'
+import { RotateCcw, X, Clock } from 'lucide-react'
 
 interface RestoreConfirmModalProps {
   isOpen: boolean
   onClose: () => void
-  onConfirm: () => void
-  loading?: boolean
+  onConfirm: () => Promise<void>
+  loading: boolean
   requestInfo: {
     employeeName: string
     leaveType: string
@@ -21,80 +21,67 @@ export function RestoreConfirmModal({
   isOpen,
   onClose,
   onConfirm,
-  loading = false,
+  loading,
   requestInfo
 }: RestoreConfirmModalProps) {
-  const handleConfirm = () => {
-    onConfirm()
-  }
-
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white border-4 border-black shadow-lg max-w-md w-full">
-        <div className="p-6">
-          {/* Header */}
-          <div className="mb-6">
-            <h2 className="text-2xl font-black uppercase text-orange-600 mb-2">Restore Deleted Request</h2>
-            <div className="w-full h-1 bg-orange-600 mb-4"></div>
-            <p className="text-gray-700">
-              Are you sure you want to restore this deleted leave request? This action can only be performed within the 7-day grace period.
-            </p>
-          </div>
-
-          {/* Request Info */}
-          <div className="bg-gray-50 p-4 border-2 border-black mb-6">
-            <h3 className="font-bold text-sm uppercase mb-2">Request Details</h3>
-            <div className="space-y-1 text-sm">
-              <p><span className="font-semibold">Employee:</span> {requestInfo.employeeName}</p>
-              <p><span className="font-semibold">Type:</span> {requestInfo.leaveType}</p>
-              <p><span className="font-semibold">Dates:</span> {requestInfo.startDate} to {requestInfo.endDate}</p>
-              <p><span className="font-semibold">Deleted:</span> {new Date(requestInfo.deletedAt).toLocaleDateString()}</p>
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
+      <div className="bg-white/20 backdrop-blur-xl border border-white/30 rounded-2xl p-6 max-w-md w-full mx-4 shadow-[0_8px_32px_rgba(31,38,135,0.3)] animate-glass-scale-in">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-orange-500/20 rounded-xl">
+              <RotateCcw className="w-6 h-6 text-orange-300" />
             </div>
+            <h2 className="text-xl font-bold text-white">Restore Request</h2>
           </div>
+          <button
+            onClick={onClose}
+            className="p-2 hover:bg-white/10 rounded-lg transition-colors text-white/70 hover:text-white"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
 
-          {/* Grace Period Warning */}
-          <div className={`p-4 border-2 mb-6 ${
-            requestInfo.daysUntilExpiry <= 2
-              ? 'bg-red-50 border-red-600'
-              : 'bg-orange-50 border-orange-600'
-          }`}>
-            <p className={`font-bold text-sm uppercase ${
-              requestInfo.daysUntilExpiry <= 2 ? 'text-red-800' : 'text-orange-800'
-            }`}>
-              ⏰ Grace Period Information
+        <div className="bg-orange-500/15 border border-orange-400/30 rounded-xl p-4 mb-4 flex items-start gap-3">
+          <Clock className="w-5 h-5 text-orange-300 flex-shrink-0 mt-0.5" />
+          <div>
+            <p className="text-orange-200 text-sm font-medium">
+              {requestInfo.daysUntilExpiry} days left to restore
             </p>
-            <p className={`text-sm mt-1 ${
-              requestInfo.daysUntilExpiry <= 2 ? 'text-red-700' : 'text-orange-700'
-            }`}>
-              {requestInfo.daysUntilExpiry <= 1
-                ? 'This request expires in less than 24 hours!'
-                : `This request can be restored for ${requestInfo.daysUntilExpiry} more day(s).`
-              }
-              After the grace period, it cannot be restored.
+            <p className="text-orange-200/70 text-xs mt-1">
+              After expiry, this request will be permanently deleted.
             </p>
           </div>
+        </div>
 
-          {/* Actions */}
-          <div className="flex gap-4">
-            <Button
-              variant="secondary"
-              onClick={onClose}
-              disabled={loading}
-              className="flex-1"
-            >
-              Cancel
-            </Button>
-            <Button
-              variant="warning"
-              onClick={handleConfirm}
-              disabled={loading}
-              className="flex-1"
-            >
-              {loading ? 'Restoring...' : 'Restore Request'}
-            </Button>
-          </div>
+        <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-4 mb-4">
+          <p className="text-sm text-white/90 font-medium">{requestInfo.employeeName}</p>
+          <p className="text-sm text-white/70">{requestInfo.leaveType}</p>
+          <p className="text-xs text-white/60 mt-1">
+            {requestInfo.startDate} - {requestInfo.endDate}
+          </p>
+        </div>
+
+        <p className="text-white/70 text-sm mb-6">
+          This will restore the deleted request and make it active again.
+        </p>
+
+        <div className="flex gap-4">
+          <button
+            onClick={onClose}
+            className="flex-1 px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white font-medium hover:bg-white/20 transition-all"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={onConfirm}
+            disabled={loading}
+            className="flex-1 px-4 py-3 bg-gradient-to-r from-orange-500 to-amber-500 text-white font-semibold rounded-xl border border-white/20 hover:shadow-[0_0_20px_rgba(255,149,0,0.5)] transition-all disabled:opacity-50"
+          >
+            {loading ? 'Restoring...' : 'Restore'}
+          </button>
         </div>
       </div>
     </div>

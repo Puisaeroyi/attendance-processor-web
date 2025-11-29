@@ -7,33 +7,26 @@ export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> 
 }
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ className, type = 'text', label, error, id, ...props }, ref) => {
-    const generatedId = React.useId();
-    const inputId = id || generatedId;
-
+  ({ className, label, error, type = 'text', ...props }, ref) => {
     const baseStyles =
-      'w-full bg-nb-white border-nb-4 border-nb-black px-nb-4 py-nb-3 text-base font-medium transition-all duration-150 ease-out placeholder:text-nb-gray-400 focus:outline-none focus:border-nb-blue focus:shadow-nb-blue disabled:opacity-50 disabled:cursor-not-allowed';
-
-    const errorStyles = error ? 'border-nb-red focus:border-nb-red focus:shadow-nb-red' : '';
+      'w-full px-4 py-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl text-white placeholder:text-white/50 focus:outline-none focus:border-white/40 focus:bg-white/15 focus:ring-2 focus:ring-white/20 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed';
 
     return (
       <div className="w-full">
         {label && (
-          <label
-            htmlFor={inputId}
-            className="mb-nb-2 block text-sm font-bold uppercase tracking-wide text-nb-black"
-          >
+          <label className="block text-sm font-medium text-white/90 mb-2">
             {label}
           </label>
         )}
         <input
           ref={ref}
-          id={inputId}
           type={type}
-          className={cn(baseStyles, errorStyles, className)}
+          className={cn(baseStyles, error && 'border-red-400/60 focus:border-red-400', className)}
           {...props}
         />
-        {error && <p className="mt-nb-2 text-sm font-medium text-nb-red">{error}</p>}
+        {error && (
+          <p className="text-red-300 text-sm mt-1">{error}</p>
+        )}
       </div>
     );
   }

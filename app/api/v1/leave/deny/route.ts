@@ -1,12 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { denyRequest } from '@/lib/db/queries'
 import { LeaveActionSchema } from '@/lib/validators/leaveValidators'
+import { requireAuth } from '@/lib/api/auth'
 
 /**
  * POST /api/v1/leave/deny
  * Deny a leave request
+ *
+ * @requires ADMIN, MANAGER role
  */
 export async function POST(request: NextRequest) {
+  // Check authentication and authorization
+  const { user, response } = await requireAuth(['ADMIN', 'MANAGER'])
+  if (response) return response
+
   try {
     // Parse and validate request body
     const body = await request.json()
@@ -23,10 +30,11 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const { requestId, adminNotes, approvedBy } = validation.data
+    const { requestId, adminNotes } = validation.data
 
     // Deny the request (atomic transaction)
-    const updatedRequest = await denyRequest(requestId, approvedBy, adminNotes)
+    // Use authenticated user's email instead of client-provided name for security
+    const updatedRequest = await denyRequest(requestId, user!.email, adminNotes)
 
     return NextResponse.json({
       success: true,

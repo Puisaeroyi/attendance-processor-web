@@ -63,7 +63,7 @@ grouping_logic:
       activity_window: "21:00 on shift_date THROUGH 08:00 on (shift_date + 1)"
       special_handling: "All next-day swipes before 08:00 belong to previous day's shift"
 
-    D_shift:  # D Shift: 03:00-12:00 (EARLY MORNING)
+    D_shift:  # D Shift: 03:00-12:00
       shift_date: "Calendar date of Check-in"
       activity_window: "02:00 on shift_date THROUGH 14:00 on shift_date"
 
@@ -119,7 +119,7 @@ shift_structure:
         expected_time: "06:00:00"        # Target check-out time (Leave Soon if < this)
 
     D:
-      name: "Early Morning"
+      name: "D"
       window: "03:00-12:00"
       check_in:
         search_range: "02:00-03:35"      # Extended: 1 hour before shift start

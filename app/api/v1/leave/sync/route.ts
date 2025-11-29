@@ -3,12 +3,19 @@ import { formsPoller } from '@/lib/services/googleFormsPoller'
 import { parseFormResponses, validateLeaveRequest } from '@/lib/parsers/formResponseParser'
 import { createLeaveRequest, formResponseExists } from '@/lib/db/queries'
 import prisma from '@/lib/db/client'
+import { requireAuth } from '@/lib/api/auth'
 
 /**
  * POST /api/v1/leave/sync
  * Manually trigger synchronization with Google Forms
+ *
+ * @requires ADMIN, MANAGER role
  */
 export async function POST() {
+  // Check authentication and authorization
+  const { response } = await requireAuth(['ADMIN', 'MANAGER'])
+  if (response) return response
+
   try {
     console.log('🔄 Starting Google Forms sync...')
 
@@ -63,7 +70,8 @@ export async function POST() {
             entityId: created.id,
             action: 'CREATED',
             performedBy: 'SYSTEM',
-            details: JSON.stringify({
+            status: 'SUCCESS',
+            metadata: JSON.stringify({
               source: 'google_forms',
               syncedAt: new Date().toISOString()
             })
@@ -110,8 +118,14 @@ export async function POST() {
 /**
  * GET /api/v1/leave/sync
  * Check sync service status
+ *
+ * @requires ADMIN, MANAGER role
  */
 export async function GET() {
+  // Check authentication and authorization
+  const { response } = await requireAuth(['ADMIN', 'MANAGER'])
+  if (response) return response
+
   try {
     // Verify Google Forms API connection
     const connected = await formsPoller.verifyConnection()

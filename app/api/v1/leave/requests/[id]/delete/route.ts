@@ -1,16 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { deleteRequest } from '@/lib/db/queries'
 import { DeleteActionSchema } from '@/lib/validators/leaveValidators'
+import { requireAuth } from '@/lib/api/auth'
 
 /**
  * DELETE /api/v1/leave/requests/{id}/delete
  * Soft delete a leave request
+ *
+ * @requires ADMIN role
  */
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  try {
+  // Check authentication and authorization
+  const { user, response } = await requireAuth(['ADMIN'])
+  if (response) return response
+
+  try{
     // Validate request ID
     const { id: requestIdStr } = await params
     const requestId = parseInt(requestIdStr)
@@ -42,10 +49,11 @@ export async function DELETE(
       )
     }
 
-    const { deletedBy, reason } = validation.data
+    const { reason } = validation.data
 
     // Delete the request
-    const updatedRequest = await deleteRequest(requestId, deletedBy, reason)
+    // Use authenticated user's email instead of client-provided name for security
+    const updatedRequest = await deleteRequest(requestId, user!.email, reason)
 
     return NextResponse.json({
       success: true,

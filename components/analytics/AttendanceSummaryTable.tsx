@@ -1,7 +1,6 @@
 'use client';
 
 import { UserStats, SummaryStats } from '@/types/attendance';
-import { Badge } from '@/components/ui';
 
 interface AttendanceSummaryTableProps {
   userStats: UserStats[];
@@ -10,90 +9,92 @@ interface AttendanceSummaryTableProps {
 
 export default function AttendanceSummaryTable({ userStats, summary }: AttendanceSummaryTableProps) {
   return (
-    <div className="bg-nb-white border-nb-4 border-nb-black shadow-nb p-nb-6">
-      <h3 className="mb-nb-4 font-display text-xl font-black uppercase tracking-tight text-nb-black">
+    <div className="bg-white rounded-2xl shadow-lg p-6">
+      <h3 className="mb-6 text-xl font-bold text-gray-900">
         User Performance Summary
       </h3>
 
       {/* Overall Summary Stats */}
-      <div className="mb-nb-6 grid grid-cols-2 gap-nb-4 border-nb-4 border-nb-black bg-nb-gray-50 p-nb-4 md:grid-cols-4">
-        <div>
-          <p className="mb-nb-1 text-xs font-bold uppercase text-nb-gray-600">Total Records</p>
-          <p className="font-display text-2xl font-black text-nb-black">{summary.totalRecords}</p>
+      <div className="mb-6 grid grid-cols-3 gap-4 bg-gray-50 rounded-xl p-4">
+        <div className="text-center">
+          <p className="mb-1 text-xs font-medium uppercase text-gray-500">Total Records</p>
+          <p className="text-2xl font-bold text-gray-900">{summary.totalRecords}</p>
         </div>
-        <div>
-          <p className="mb-nb-1 text-xs font-bold uppercase text-nb-gray-600">On-Time %</p>
-          <p className="font-display text-2xl font-black text-nb-green">{summary.onTimePercentage}%</p>
+        <div className="text-center">
+          <p className="mb-1 text-xs font-medium uppercase text-gray-500">On-Time %</p>
+          <p className="text-2xl font-bold text-green-600">{summary.onTimePercentage}%</p>
         </div>
-        <div>
-          <p className="mb-nb-1 text-xs font-bold uppercase text-nb-gray-600">Deviation %</p>
-          <p className="font-display text-2xl font-black text-nb-orange">{summary.deviationPercentage}%</p>
-        </div>
-        <div>
-          <p className="mb-nb-1 text-xs font-bold uppercase text-nb-gray-600">Avg/User</p>
-          <p className="font-display text-2xl font-black text-nb-blue">{summary.averageAttendance}</p>
+        <div className="text-center">
+          <p className="mb-1 text-xs font-medium uppercase text-gray-500">Deviation %</p>
+          <p className="text-2xl font-bold text-orange-500">{summary.deviationPercentage}%</p>
         </div>
       </div>
 
       {/* User Performance Table */}
-      <div className="overflow-x-auto">
-        <table className="w-full border-collapse">
+      <div className="overflow-x-auto rounded-xl border border-gray-200">
+        <table className="w-full">
           <thead>
-            <tr className="bg-nb-black text-nb-white">
-              <th className="border-nb-2 border-nb-black p-nb-3 text-left text-xs font-black uppercase">
+            <tr className="bg-gray-100">
+              <th className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-600">
                 User
               </th>
-              <th className="border-nb-2 border-nb-black p-nb-3 text-center text-xs font-black uppercase">
+              <th className="px-4 py-3 text-center text-xs font-semibold uppercase text-gray-600">
                 Total
               </th>
-              <th className="border-nb-2 border-nb-black p-nb-3 text-center text-xs font-black uppercase">
+              <th className="px-4 py-3 text-center text-xs font-semibold uppercase text-gray-600">
                 On Time
               </th>
-              <th className="border-nb-2 border-nb-black p-nb-3 text-center text-xs font-black uppercase">
+              <th className="px-4 py-3 text-center text-xs font-semibold uppercase text-gray-600">
                 Late
               </th>
-              <th className="border-nb-2 border-nb-black p-nb-3 text-center text-xs font-black uppercase">
+              <th className="px-4 py-3 text-center text-xs font-semibold uppercase text-gray-600">
                 Soon
               </th>
-              <th className="border-nb-2 border-nb-black p-nb-3 text-center text-xs font-black uppercase">
+              <th className="px-4 py-3 text-center text-xs font-semibold uppercase text-gray-600">
                 Deviation
               </th>
-              <th className="border-nb-2 border-nb-black p-nb-3 text-center text-xs font-black uppercase">
+              <th className="px-4 py-3 text-center text-xs font-semibold uppercase text-gray-600">
                 Status
               </th>
             </tr>
           </thead>
-          <tbody>
+          <tbody className="divide-y divide-gray-100">
             {userStats.map((user, index) => (
               <tr
                 key={user.userName}
-                className={index % 2 === 0 ? 'bg-nb-white' : 'bg-nb-gray-50'}
+                className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}
               >
-                <td className="border-nb-2 border-nb-black p-nb-3 font-bold text-nb-black">
+                <td className="px-4 py-3 font-medium text-gray-900">
                   {user.userName}
                 </td>
-                <td className="border-nb-2 border-nb-black p-nb-3 text-center font-bold text-nb-black">
+                <td className="px-4 py-3 text-center font-medium text-gray-700">
                   {user.totalRecords}
                 </td>
-                <td className="border-nb-2 border-nb-black p-nb-3 text-center font-bold text-nb-green">
+                <td className="px-4 py-3 text-center font-medium text-green-600">
                   {user.onTimeCount}
                 </td>
-                <td className="border-nb-2 border-nb-black p-nb-3 text-center font-bold text-nb-red">
+                <td className="px-4 py-3 text-center font-medium text-red-500">
                   {user.lateCount}
                 </td>
-                <td className="border-nb-2 border-nb-black p-nb-3 text-center font-bold text-nb-orange">
+                <td className="px-4 py-3 text-center font-medium text-orange-500">
                   {user.soonCount}
                 </td>
-                <td className="border-nb-2 border-nb-black p-nb-3 text-center font-bold text-nb-black">
+                <td className="px-4 py-3 text-center font-medium text-gray-700">
                   {user.lateCount + user.soonCount}
                 </td>
-                <td className="border-nb-2 border-nb-black p-nb-3 text-center">
+                <td className="px-4 py-3 text-center">
                   {user.deviationPercentage === 0 ? (
-                    <Badge variant="success">Perfect</Badge>
+                    <span className="inline-flex px-2.5 py-1 text-xs font-medium rounded-full bg-green-100 text-green-700">
+                      Perfect
+                    </span>
                   ) : user.deviationPercentage < 25 ? (
-                    <Badge variant="warning">Good</Badge>
+                    <span className="inline-flex px-2.5 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-700">
+                      Good
+                    </span>
                   ) : (
-                    <Badge variant="error">Needs Improvement</Badge>
+                    <span className="inline-flex px-2.5 py-1 text-xs font-medium rounded-full bg-red-100 text-red-700">
+                      Needs Improvement
+                    </span>
                   )}
                 </td>
               </tr>

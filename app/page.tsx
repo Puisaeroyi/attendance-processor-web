@@ -1,199 +1,141 @@
-'use client';
-
-import { FileText, Upload, Zap, Shield, Clock, CalendarDays } from 'lucide-react';
+import { FileText, Upload, CalendarDays } from 'lucide-react';
 import Link from 'next/link';
-import {
-  Button,
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-  Badge,
-} from '@/components/ui';
+import { getUser } from '@/lib/auth/dal';
+import { toUserProfile } from '@/lib/auth/types';
 
-export default function Home() {
+export default async function Home() {
+  const userRaw = await getUser();
+  const user = toUserProfile(userRaw);
+
+  // Check if user has manager-level access
+  const hasManagerAccess = user?.role === 'ADMIN' || user?.role === 'MANAGER';
+
   const features = [
+    {
+      icon: Upload,
+      title: 'Attendance Processor',
+      description: 'Process attendance data with advanced algorithms for accurate shift detection.',
+      href: '/processor',
+      gradient: 'from-blue-500 to-cyan-500',
+    },
     {
       icon: FileText,
       title: 'CSV Converter',
-      description: 'Convert and transform CSV files with advanced processing capabilities',
-      badge: 'Fast',
+      description: 'Convert and transform CSV files with ease. Support for multiple formats.',
       href: '/converter',
-    },
-    {
-      icon: Upload,
-      title: 'Attendance Processing',
-      description: 'Process attendance data with burst detection and shift grouping',
-      badge: 'Powerful',
-      href: '/processor',
+      gradient: 'from-purple-500 to-pink-500',
     },
     {
       icon: CalendarDays,
       title: 'Leave Management',
-      description: 'Manage employee leave requests with Google Forms integration',
-      badge: 'Organized',
+      description: 'Manage leave requests, approvals, and track team availability.',
       href: '/leave-management',
-    },
-    {
-      icon: Zap,
-      title: 'Lightning Speed',
-      description: 'Handle 10,000+ records in under 10 seconds',
-      badge: 'Optimized',
-      href: null,
-    },
-    {
-      icon: Shield,
-      title: 'Secure & Reliable',
-      description: 'Enterprise-grade security with data validation',
-      badge: 'Secure',
-      href: null,
+      gradient: 'from-green-500 to-emerald-500',
     },
   ];
 
-  return (
-    <div className="flex flex-col">
-      {/* Hero Section */}
-      <section className="bg-nb-yellow py-nb-16">
-        <div className="nb-container">
-          <div className="mx-auto max-w-4xl text-center">
-            <Badge variant="primary" className="mb-nb-6">
-              ✨ Neo Brutalism Design
-            </Badge>
-            <h1 className="mb-nb-6 font-display text-4xl font-black uppercase leading-tight tracking-tight text-nb-black md:text-6xl">
-              Attendance & CSV
-              <br />
+  // Simple homepage for USER role
+  if (user && !hasManagerAccess) {
+    return (
+      <div className="min-h-[calc(100vh-5rem)] flex items-center justify-center pb-12">
+        <div className="max-w-2xl mx-auto text-center px-6">
+          <h1 className="text-4xl md:text-6xl font-bold text-white mb-8 leading-tight">
+            Attendance & CSV
+            <br />
+            <span className="bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
               Processor Pro
-            </h1>
-            <p className="mb-nb-8 text-lg text-nb-gray-800 md:text-xl">
-              Modern web application for processing attendance data and converting CSV files. Built
-              with React, TypeScript, and Tailwind CSS.
+            </span>
+          </h1>
+          <div className="bg-white/15 backdrop-blur-md border border-white/20 rounded-2xl p-8">
+            <p className="text-2xl text-white/90">
+              Welcome back, <span className="font-bold text-white">{user.username}</span>!
             </p>
-            <div className="flex flex-col items-center justify-center gap-nb-4 sm:flex-row">
-              <Link href="/processor">
-                <Button size="lg" variant="primary">
-                  Start Processing
-                </Button>
-              </Link>
-              <Link href="/converter">
-                <Button size="lg" variant="secondary">
-                  Convert CSV
-                </Button>
-              </Link>
-            </div>
+            <p className="mt-4 text-white/60">
+              Navigate to Leave Management to submit and track your leave requests.
+            </p>
+            <Link
+              href="/leave-management"
+              className="inline-flex items-center gap-2 mt-6 px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-500 text-white font-semibold rounded-xl border border-white/20 hover:shadow-[0_0_20px_rgba(52,199,89,0.5)] transition-all"
+            >
+              <CalendarDays className="w-5 h-5" />
+              Go to Leave Management
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Full homepage for ADMIN and MANAGER roles
+  return (
+    <div className="min-h-[calc(100vh-5rem)] pb-12">
+      {/* Hero Section */}
+      <section className="py-16 px-6">
+        <div className="max-w-4xl mx-auto text-center">
+          <h1 className="text-4xl md:text-6xl font-bold text-white mb-8 leading-tight">
+            Attendance & CSV
+            <br />
+            <span className="bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+              Processor Pro
+            </span>
+          </h1>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <Link
+              href="/processor"
+              className="px-8 py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white font-semibold rounded-xl border border-white/20 hover:shadow-[0_0_30px_rgba(102,126,234,0.5)] transition-all duration-300 active:scale-95"
+            >
+              Start Processing
+            </Link>
+            <Link
+              href="/converter"
+              className="px-8 py-3 bg-white/15 backdrop-blur-sm text-white font-semibold rounded-xl border border-white/20 hover:bg-white/25 hover:shadow-[0_0_20px_rgba(255,255,255,0.2)] transition-all duration-300 active:scale-95"
+            >
+              Convert CSV
+            </Link>
           </div>
         </div>
       </section>
 
       {/* Features Section */}
-      <section className="bg-nb-white py-nb-16">
-        <div className="nb-container">
-          <div className="mb-nb-12 text-center">
-            <h2 className="mb-nb-4 font-display text-3xl font-black uppercase tracking-tight text-nb-black md:text-4xl">
-              Powerful Features
-            </h2>
-            <p className="text-lg text-nb-gray-600">
-              Everything you need to process attendance data efficiently
+      <section className="py-12 px-6">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-white mb-4">Powerful Features</h2>
+            <p className="text-white/60 max-w-2xl mx-auto">
+              Everything you need to manage attendance and process data efficiently.
             </p>
           </div>
-
-          <div className="grid gap-nb-6 md:grid-cols-2 lg:grid-cols-5">
-            {features.map((feature, index) => {
-              const cardContent = (
-                <Card
-                  key={index}
-                  variant={
-                    index === 0 ? 'primary' : index === 1 ? 'success' : index === 2 ? 'warning' : 'default'
-                  }
-                  className={feature.href ? 'cursor-pointer transition-transform hover:translate-y-[-4px]' : ''}
-                >
-                  <CardHeader>
-                    <div className="mb-nb-4 flex items-center justify-between">
-                      <div className="rounded-nb bg-nb-gray-100 p-nb-3 border-nb-2 border-nb-black shadow-nb-sm">
-                        <feature.icon className="h-6 w-6 text-nb-black" />
-                      </div>
-                      <Badge variant={index % 3 === 0 ? 'success' : index % 3 === 1 ? 'primary' : 'warning'}>
-                        {feature.badge}
-                      </Badge>
-                    </div>
-                    <CardTitle>{feature.title}</CardTitle>
-                    <CardDescription>{feature.description}</CardDescription>
-                  </CardHeader>
-                </Card>
-              );
-
-              return feature.href ? (
-                <Link key={index} href={feature.href}>
-                  {cardContent}
-                </Link>
-              ) : (
-                cardContent
-              );
-            })}
+          <div className="grid md:grid-cols-3 gap-6">
+            {features.map((feature) => (
+              <Link key={feature.title} href={feature.href}>
+                <div className="bg-white/15 backdrop-blur-md border border-white/20 rounded-2xl p-6 h-full hover:bg-white/20 hover:border-white/30 hover:shadow-[0_8px_32px_rgba(31,38,135,0.25)] transition-all duration-300 group">
+                  <div className={`w-12 h-12 rounded-xl bg-gradient-to-r ${feature.gradient} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
+                    <feature.icon className="w-6 h-6 text-white" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-white mb-2">{feature.title}</h3>
+                  <p className="text-white/60">{feature.description}</p>
+                </div>
+              </Link>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* Stats Section */}
-      <section className="bg-nb-blue py-nb-16">
-        <div className="nb-container">
-          <div className="grid gap-nb-8 md:grid-cols-3">
-            <div className="text-center">
-              <div className="mb-nb-4 font-display text-5xl font-black text-nb-white">10K+</div>
-              <p className="text-lg font-bold uppercase tracking-wide text-nb-white">
-                Records/Second
-              </p>
-            </div>
-            <div className="text-center">
-              <div className="mb-nb-4 font-display text-5xl font-black text-nb-white">100%</div>
-              <p className="text-lg font-bold uppercase tracking-wide text-nb-white">
-                Accurate Processing
-              </p>
-            </div>
-            <div className="text-center">
-              <div className="mb-nb-4 font-display text-5xl font-black text-nb-white">&lt;10s</div>
-              <p className="text-lg font-bold uppercase tracking-wide text-nb-white">
-                Processing Time
+      {/* User greeting if logged in */}
+      {user && (
+        <section className="py-6 px-6">
+          <div className="max-w-3xl mx-auto">
+            <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-4 text-center">
+              <p className="text-white/80">
+                Welcome back, <span className="font-semibold text-white">{user.username}</span>!
+                <span className="ml-2 px-2 py-0.5 text-xs font-medium rounded-full bg-white/20 text-white/90">
+                  {user.role}
+                </span>
               </p>
             </div>
           </div>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="bg-nb-white py-nb-16">
-        <div className="nb-container">
-          <Card variant="primary" className="mx-auto max-w-3xl">
-            <CardContent className="p-nb-8 text-center">
-              <Clock className="mx-auto mb-nb-6 h-16 w-16 text-nb-blue" />
-              <h2 className="mb-nb-4 font-display text-3xl font-black uppercase tracking-tight text-nb-black">
-                Ready to Get Started?
-              </h2>
-              <p className="mb-nb-8 text-lg text-nb-gray-600">
-                Process your attendance data with advanced algorithms and get accurate results in
-                seconds.
-              </p>
-              <div className="flex flex-col items-center justify-center gap-nb-4 sm:flex-row">
-                <Link href="/processor">
-                  <Button size="lg" variant="primary">
-                    Try Processor
-                  </Button>
-                </Link>
-                <Link href="/converter">
-                  <Button size="lg" variant="success">
-                    Try Converter
-                  </Button>
-                </Link>
-                <Link href="/leave-management">
-                  <Button size="lg" variant="warning">
-                    Manage Leaves
-                  </Button>
-                </Link>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </section>
+        </section>
+      )}
     </div>
   );
 }

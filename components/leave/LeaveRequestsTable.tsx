@@ -34,7 +34,7 @@ interface TableProps {
   onUnarchive: (requestId: number) => Promise<void>
   onDelete: (requestId: number, reason: string, deletedBy: string) => Promise<void>
   onRestore: (requestId: number) => Promise<void>
-  userRole?: 'admin' | 'hr' | 'manager'
+  userRole?: 'admin' | 'hr' | 'manager' | 'user'
 }
 
 export function LeaveRequestsTable({
@@ -45,7 +45,7 @@ export function LeaveRequestsTable({
   onUnarchive,
   onDelete,
   onRestore,
-  userRole = 'admin'
+  userRole = 'user'
 }: TableProps) {
   const [actioningId, setActioningId] = useState<number | null>(null)
   const [showModal, setShowModal] = useState(false)
@@ -53,10 +53,9 @@ export function LeaveRequestsTable({
     requestId: number
     action: 'approve' | 'deny'
   } | null>(null)
-  const [approvedBy, setApprovedBy] = useState('')
+  const [approvedBy] = useState('Thomas_Nguyen')
   const [adminNotes, setAdminNotes] = useState('')
 
-  // New modal states for archive/delete operations
   const [archiveModalOpen, setArchiveModalOpen] = useState(false)
   const [deleteModalOpen, setDeleteModalOpen] = useState(false)
   const [unarchiveModalOpen, setUnarchiveModalOpen] = useState(false)
@@ -69,21 +68,16 @@ export function LeaveRequestsTable({
   }
 
   const handleConfirmAction = async () => {
-    if (!modalData || !approvedBy.trim()) {
-      alert('Please enter your name')
-      return
-    }
+    if (!modalData) return
 
     setActioningId(modalData.requestId)
     await onAction(modalData.requestId, modalData.action, approvedBy, adminNotes || undefined)
     setActioningId(null)
     setShowModal(false)
-    setApprovedBy('')
     setAdminNotes('')
     setModalData(null)
   }
 
-  // New handlers for archive/delete operations
   const handleArchive = (request: LeaveRequest) => {
     setSelectedRequest(request)
     setArchiveModalOpen(true)
@@ -152,7 +146,6 @@ export function LeaveRequestsTable({
     }
   }
 
-  // Check if request can be restored (within 7 days of deletion)
   const canRestore = (request: LeaveRequest) => {
     if (!request.deletedAt) return false
     const deletedDate = new Date(request.deletedAt)
@@ -161,7 +154,6 @@ export function LeaveRequestsTable({
     return daysDiff <= 7
   }
 
-  // Calculate days until expiry for restore modal
   const getDaysUntilExpiry = (request: LeaveRequest) => {
     if (!request.deletedAt) return 0
     const deletedDate = new Date(request.deletedAt)
@@ -180,86 +172,61 @@ export function LeaveRequestsTable({
 
   if (loading) {
     return (
-      <div className="bg-white p-8 rounded-lg shadow text-center">
-        <p className="text-gray-500">Loading...</p>
+      <div className="bg-white/15 backdrop-blur-md border border-white/20 rounded-2xl p-8 text-center">
+        <div className="animate-spin w-8 h-8 border-2 border-white/30 border-t-white rounded-full mx-auto mb-4"></div>
+        <p className="text-white/70">Loading...</p>
       </div>
     )
   }
 
   if (requests.length === 0) {
     return (
-      <div className="bg-white p-8 rounded-lg shadow text-center">
-        <p className="text-gray-500">No leave requests found</p>
+      <div className="bg-white/15 backdrop-blur-md border border-white/20 rounded-2xl p-8 text-center">
+        <p className="text-white/70">No leave requests found</p>
       </div>
     )
   }
 
   return (
     <>
-      <div className="bg-white rounded-lg shadow overflow-hidden">
+      <div className="bg-white/15 backdrop-blur-md border border-white/20 rounded-2xl overflow-hidden shadow-[0_8px_32px_rgba(31,38,135,0.15)]">
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+          <table className="min-w-full">
+            <thead className="bg-white/10">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Employee
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Manager
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Leave Type
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Dates
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Shift
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Days
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
-                </th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-white/80 uppercase tracking-wider">Employee</th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-white/80 uppercase tracking-wider">Manager</th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-white/80 uppercase tracking-wider">Leave Type</th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-white/80 uppercase tracking-wider">Dates</th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-white/80 uppercase tracking-wider">Shift</th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-white/80 uppercase tracking-wider">Days</th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-white/80 uppercase tracking-wider">Status</th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-white/80 uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="divide-y divide-white/10">
               {requests.map((request) => (
-                <tr key={request.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">{request.employeeName}</div>
-                    <div className="text-xs text-gray-500">Submitted: {formatDate(request.submittedAt)}</div>
+                <tr key={request.id} className="hover:bg-white/5 transition-colors">
+                  <td className="px-6 py-4">
+                    <div className="text-sm font-medium text-white">{request.employeeName}</div>
+                    <div className="text-xs text-white/60">Submitted: {formatDate(request.submittedAt)}</div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {request.managerName}
+                  <td className="px-6 py-4 text-sm text-white/90">{request.managerName}</td>
+                  <td className="px-6 py-4 text-sm text-white/90">{request.leaveType}</td>
+                  <td className="px-6 py-4">
+                    <div className="text-sm text-white/90">{formatDate(request.startDate)}</div>
+                    <div className="text-xs text-white/60">to {formatDate(request.endDate)}</div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {request.leaveType}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    <div>{formatDate(request.startDate)}</div>
-                    <div className="text-xs text-gray-500">to {formatDate(request.endDate)}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {request.shiftType}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {request.durationDays}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-6 py-4 text-sm text-white/90">{request.shiftType}</td>
+                  <td className="px-6 py-4 text-sm text-white/90">{request.durationDays}</td>
+                  <td className="px-6 py-4">
                     {request.archivedAt ? (
                       <Badge variant="warning">ARCHIVED</Badge>
                     ) : request.deletedAt ? (
                       <Badge variant="error">
                         DELETED
                         {canRestore(request) && (
-                          <span className="ml-1 text-xs">
-                            ({getDaysUntilExpiry(request)}d left)
-                          </span>
+                          <span className="ml-1 text-xs">({getDaysUntilExpiry(request)}d left)</span>
                         )}
                       </Badge>
                     ) : (
@@ -274,36 +241,35 @@ export function LeaveRequestsTable({
                       </Badge>
                     )}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                  <td className="px-6 py-4">
                     <div className="flex flex-wrap gap-2">
-                      {/* Original approve/deny actions for pending requests */}
-                      {request.status === 'PENDING' && !request.archivedAt && !request.deletedAt && (
+                      {request.status === 'PENDING' && !request.archivedAt && !request.deletedAt &&
+                       (userRole === 'admin' || userRole === 'hr' || userRole === 'manager') && (
                         <>
                           <button
                             onClick={() => handleActionClick(request.id, 'approve')}
                             disabled={actioningId === request.id}
-                            className="px-3 py-1 bg-green-100 text-green-800 rounded hover:bg-green-200 disabled:opacity-50"
+                            className="px-3 py-1.5 bg-green-500/25 text-green-200 rounded-lg hover:bg-green-500/40 transition-colors text-sm font-medium disabled:opacity-50"
                           >
                             Approve
                           </button>
                           <button
                             onClick={() => handleActionClick(request.id, 'deny')}
                             disabled={actioningId === request.id}
-                            className="px-3 py-1 bg-red-100 text-red-800 rounded hover:bg-red-200 disabled:opacity-50"
+                            className="px-3 py-1.5 bg-red-500/25 text-red-200 rounded-lg hover:bg-red-500/40 transition-colors text-sm font-medium disabled:opacity-50"
                           >
                             Deny
                           </button>
                         </>
                       )}
 
-                      {/* Archive action for active, non-archived, non-deleted requests */}
-                      {!request.archivedAt && !request.deletedAt && userRole !== 'manager' && (
+                      {!request.archivedAt && !request.deletedAt && userRole !== 'manager' && userRole !== 'user' && (
                         <>
                           {userRole === 'hr' && (
                             <button
                               onClick={() => handleArchive(request)}
                               disabled={actioningId === request.id}
-                              className="px-3 py-1 bg-yellow-100 text-yellow-800 rounded hover:bg-yellow-200 disabled:opacity-50"
+                              className="px-3 py-1.5 bg-yellow-500/25 text-yellow-200 rounded-lg hover:bg-yellow-500/40 transition-colors text-sm font-medium disabled:opacity-50"
                             >
                               Archive
                             </button>
@@ -312,7 +278,7 @@ export function LeaveRequestsTable({
                             <button
                               onClick={() => handleDelete(request)}
                               disabled={actioningId === request.id}
-                              className="px-3 py-1 bg-red-100 text-red-800 rounded hover:bg-red-200 disabled:opacity-50 font-bold"
+                              className="px-3 py-1.5 bg-red-500/25 text-red-200 rounded-lg hover:bg-red-500/40 transition-colors text-sm font-medium disabled:opacity-50"
                             >
                               Delete
                             </button>
@@ -320,31 +286,28 @@ export function LeaveRequestsTable({
                         </>
                       )}
 
-                      {/* Unarchive action for archived requests */}
                       {request.archivedAt && (
                         <button
                           onClick={() => handleUnarchive(request)}
                           disabled={actioningId === request.id}
-                          className="px-3 py-1 bg-blue-100 text-blue-800 rounded hover:bg-blue-200 disabled:opacity-50"
+                          className="px-3 py-1.5 bg-blue-500/25 text-blue-200 rounded-lg hover:bg-blue-500/40 transition-colors text-sm font-medium disabled:opacity-50"
                         >
                           Unarchive
                         </button>
                       )}
 
-                      {/* Restore action for deleted requests within grace period */}
                       {request.deletedAt && canRestore(request) && (
                         <button
                           onClick={() => handleRestore(request)}
                           disabled={actioningId === request.id}
-                          className="px-3 py-1 bg-orange-100 text-orange-800 rounded hover:bg-orange-200 disabled:opacity-50 font-bold"
+                          className="px-3 py-1.5 bg-orange-500/25 text-orange-200 rounded-lg hover:bg-orange-500/40 transition-colors text-sm font-medium disabled:opacity-50"
                         >
                           Restore
                         </button>
                       )}
 
-                      {/* Show expiry warning for deleted requests */}
                       {request.deletedAt && !canRestore(request) && (
-                        <span className="text-xs text-gray-500 italic">Expired</span>
+                        <span className="text-xs text-white/50 italic">Expired</span>
                       )}
                     </div>
                   </td>
@@ -355,36 +318,31 @@ export function LeaveRequestsTable({
         </div>
       </div>
 
-      {/* Original Action Modal */}
+      {/* Approve/Deny Modal */}
       {showModal && modalData && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white border-4 border-black shadow-lg max-w-md w-full mx-4 p-6">
-            <h2 className="text-2xl font-black uppercase mb-4">
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-white/20 backdrop-blur-xl border border-white/30 rounded-2xl p-6 max-w-md w-full mx-4 shadow-[0_8px_32px_rgba(31,38,135,0.3)] animate-glass-scale-in">
+            <h2 className="text-2xl font-bold text-white mb-2">
               {modalData.action === 'approve' ? 'Approve' : 'Deny'} Leave Request
             </h2>
-            <div className="w-full h-1 bg-black mb-6"></div>
+            <div className="w-full h-px bg-white/20 mb-6"></div>
 
             <div className="space-y-4 mb-6">
               <div>
-                <label className="block text-sm font-bold uppercase mb-2">Your Name *</label>
-                <input
-                  type="text"
-                  value={approvedBy}
-                  onChange={(e) => setApprovedBy(e.target.value)}
-                  placeholder="Enter your name"
-                  className="w-full px-3 py-2 border-2 border-black focus:outline-none focus:ring-4 focus:ring-blue-300"
-                  required
-                />
+                <label className="block text-sm font-medium text-white/90 mb-2">Approved/Denied By</label>
+                <div className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white font-medium">
+                  {approvedBy}
+                </div>
               </div>
 
               <div>
-                <label className="block text-sm font-bold uppercase mb-2">Notes (optional)</label>
+                <label className="block text-sm font-medium text-white/90 mb-2">Notes (optional)</label>
                 <textarea
                   value={adminNotes}
                   onChange={(e) => setAdminNotes(e.target.value)}
                   placeholder="Add any notes..."
                   rows={3}
-                  className="w-full px-3 py-2 border-2 border-black focus:outline-none focus:ring-4 focus:ring-blue-300"
+                  className="w-full px-4 py-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl text-white placeholder:text-white/50 focus:outline-none focus:border-white/40 focus:ring-2 focus:ring-white/20 resize-none"
                 />
               </div>
             </div>
@@ -393,21 +351,20 @@ export function LeaveRequestsTable({
               <button
                 onClick={() => {
                   setShowModal(false)
-                  setApprovedBy('')
                   setAdminNotes('')
                   setModalData(null)
                 }}
-                className="flex-1 px-4 py-2 border-2 border-black bg-gray-100 hover:bg-gray-200 font-bold uppercase"
+                className="flex-1 px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white font-medium hover:bg-white/20 transition-all"
               >
                 Cancel
               </button>
               <button
                 onClick={handleConfirmAction}
                 disabled={actioningId !== null}
-                className={`flex-1 px-4 py-2 border-2 border-black font-bold uppercase text-white ${
+                className={`flex-1 px-4 py-3 font-semibold rounded-xl border border-white/20 text-white transition-all disabled:opacity-50 ${
                   modalData.action === 'approve'
-                    ? 'bg-green-600 hover:bg-green-700 disabled:opacity-50'
-                    : 'bg-red-600 hover:bg-red-700 disabled:opacity-50'
+                    ? 'bg-gradient-to-r from-green-500 to-emerald-500 hover:shadow-[0_0_20px_rgba(52,199,89,0.5)]'
+                    : 'bg-gradient-to-r from-red-500 to-pink-500 hover:shadow-[0_0_20px_rgba(255,59,48,0.5)]'
                 }`}
               >
                 Confirm {modalData.action === 'approve' ? 'Approval' : 'Denial'}
@@ -417,82 +374,60 @@ export function LeaveRequestsTable({
         </div>
       )}
 
-      {/* Archive Confirmation Modal */}
+      {/* Other Modals */}
       {selectedRequest && (
-        <ArchiveConfirmModal
-          isOpen={archiveModalOpen}
-          onClose={() => {
-            setArchiveModalOpen(false)
-            setSelectedRequest(null)
-          }}
-          onConfirm={handleArchiveConfirm}
-          loading={actioningId === selectedRequest?.id}
-          requestInfo={{
-            employeeName: selectedRequest.employeeName,
-            leaveType: selectedRequest.leaveType,
-            startDate: formatDate(selectedRequest.startDate),
-            endDate: formatDate(selectedRequest.endDate)
-          }}
-        />
-      )}
-
-      {/* Delete Confirmation Modal */}
-      {selectedRequest && (
-        <DeleteConfirmModal
-          isOpen={deleteModalOpen}
-          onClose={() => {
-            setDeleteModalOpen(false)
-            setSelectedRequest(null)
-          }}
-          onConfirm={handleDeleteConfirm}
-          loading={actioningId === selectedRequest?.id}
-          requestInfo={{
-            employeeName: selectedRequest.employeeName,
-            leaveType: selectedRequest.leaveType,
-            startDate: formatDate(selectedRequest.startDate),
-            endDate: formatDate(selectedRequest.endDate)
-          }}
-        />
-      )}
-
-      {/* Unarchive Confirmation Modal */}
-      {selectedRequest && (
-        <UnarchiveConfirmModal
-          isOpen={unarchiveModalOpen}
-          onClose={() => {
-            setUnarchiveModalOpen(false)
-            setSelectedRequest(null)
-          }}
-          onConfirm={handleUnarchiveConfirm}
-          loading={actioningId === selectedRequest?.id}
-          requestInfo={{
-            employeeName: selectedRequest.employeeName,
-            leaveType: selectedRequest.leaveType,
-            startDate: formatDate(selectedRequest.startDate),
-            endDate: formatDate(selectedRequest.endDate)
-          }}
-        />
-      )}
-
-      {/* Restore Confirmation Modal */}
-      {selectedRequest && (
-        <RestoreConfirmModal
-          isOpen={restoreModalOpen}
-          onClose={() => {
-            setRestoreModalOpen(false)
-            setSelectedRequest(null)
-          }}
-          onConfirm={handleRestoreConfirm}
-          loading={actioningId === selectedRequest?.id}
-          requestInfo={{
-            employeeName: selectedRequest.employeeName,
-            leaveType: selectedRequest.leaveType,
-            startDate: formatDate(selectedRequest.startDate),
-            endDate: formatDate(selectedRequest.endDate),
-            deletedAt: selectedRequest.deletedAt!,
-            daysUntilExpiry: getDaysUntilExpiry(selectedRequest)
-          }}
-        />
+        <>
+          <ArchiveConfirmModal
+            isOpen={archiveModalOpen}
+            onClose={() => { setArchiveModalOpen(false); setSelectedRequest(null); }}
+            onConfirm={handleArchiveConfirm}
+            loading={actioningId === selectedRequest?.id}
+            requestInfo={{
+              employeeName: selectedRequest.employeeName,
+              leaveType: selectedRequest.leaveType,
+              startDate: formatDate(selectedRequest.startDate),
+              endDate: formatDate(selectedRequest.endDate)
+            }}
+          />
+          <DeleteConfirmModal
+            isOpen={deleteModalOpen}
+            onClose={() => { setDeleteModalOpen(false); setSelectedRequest(null); }}
+            onConfirm={handleDeleteConfirm}
+            loading={actioningId === selectedRequest?.id}
+            requestInfo={{
+              employeeName: selectedRequest.employeeName,
+              leaveType: selectedRequest.leaveType,
+              startDate: formatDate(selectedRequest.startDate),
+              endDate: formatDate(selectedRequest.endDate)
+            }}
+          />
+          <UnarchiveConfirmModal
+            isOpen={unarchiveModalOpen}
+            onClose={() => { setUnarchiveModalOpen(false); setSelectedRequest(null); }}
+            onConfirm={handleUnarchiveConfirm}
+            loading={actioningId === selectedRequest?.id}
+            requestInfo={{
+              employeeName: selectedRequest.employeeName,
+              leaveType: selectedRequest.leaveType,
+              startDate: formatDate(selectedRequest.startDate),
+              endDate: formatDate(selectedRequest.endDate)
+            }}
+          />
+          <RestoreConfirmModal
+            isOpen={restoreModalOpen}
+            onClose={() => { setRestoreModalOpen(false); setSelectedRequest(null); }}
+            onConfirm={handleRestoreConfirm}
+            loading={actioningId === selectedRequest?.id}
+            requestInfo={{
+              employeeName: selectedRequest.employeeName,
+              leaveType: selectedRequest.leaveType,
+              startDate: formatDate(selectedRequest.startDate),
+              endDate: formatDate(selectedRequest.endDate),
+              deletedAt: selectedRequest.deletedAt!,
+              daysUntilExpiry: getDaysUntilExpiry(selectedRequest)
+            }}
+          />
+        </>
       )}
     </>
   )

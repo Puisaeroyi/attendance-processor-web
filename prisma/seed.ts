@@ -1,160 +1,190 @@
 import { PrismaClient } from '@prisma/client'
+import { hashPassword } from '../lib/auth/password'
 
 const prisma = new PrismaClient()
 
-async function main() {
-  console.log('🌱 Seeding database...')
+/**
+ * Clear all data from database (development only)
+ */
+async function clearDatabase() {
+  console.log('🗑️  Clearing existing data...')
 
-  // Clear existing data
-  await prisma.auditLog.deleteMany()
-  await prisma.leaveApproval.deleteMany()
-  await prisma.leaveRequest.deleteMany()
+  await prisma.$transaction([
+    prisma.auditLog.deleteMany(),
+    prisma.leaveApproval.deleteMany(),
+    prisma.leaveRequest.deleteMany(),
+    prisma.passwordReset.deleteMany(),
+    prisma.session.deleteMany(),
+    prisma.user.deleteMany(),
+  ])
 
-  console.log('✅ Cleared existing data')
+  console.log('  ✓ Database cleared')
+}
 
-  // Sample leave request 1 - Pending
-  const request1 = await prisma.leaveRequest.create({
-    data: {
-      formResponseId: 'test_response_001',
-      employeeName: 'aman bey',
-      managerName: 'Jaebum Park',
-      leaveType: 'Vacation',
-      startDate: new Date('2022-04-22'),
-      endDate: new Date('2022-04-28'),
-      shiftType: 'Full Shift',
-      reason: 'Personal',
-      status: 'PENDING',
-      durationDays: 5,
-      submittedAt: new Date('2022-04-22T09:00:00')
+/**
+ * Seed users (5 operators + 1 admin)
+ */
+async function seedUsers() {
+  console.log('👥 Seeding users...')
+
+  const defaultPassword = await hashPassword('Password123!')
+
+  const users = [
+    // Operators from users.yaml
+    {
+      email: 'silver.bui@example.com',
+      username: 'Silver_Bui',
+      firstName: 'Bui',
+      lastName: 'Duc Toan',
+      role: 'USER',
+      passwordHash: defaultPassword,
+      isActive: true,
+      isEmailVerified: true,
+    },
+    {
+      email: 'capone@example.com',
+      username: 'Capone',
+      firstName: 'Pham',
+      lastName: 'Tan Phat',
+      role: 'USER',
+      passwordHash: defaultPassword,
+      isActive: true,
+      isEmailVerified: true,
+    },
+    {
+      email: 'minh@example.com',
+      username: 'Minh',
+      firstName: 'Mac Le',
+      lastName: 'Duc Minh',
+      role: 'USER',
+      passwordHash: defaultPassword,
+      isActive: true,
+      isEmailVerified: true,
+    },
+    {
+      email: 'trieu@example.com',
+      username: 'Trieu',
+      firstName: 'Nguyen',
+      lastName: 'Hoang Trieu',
+      role: 'USER',
+      passwordHash: defaultPassword,
+      isActive: true,
+      isEmailVerified: true,
+    },
+    {
+      email: 'thomas.nguyen@example.com',
+      username: 'Thomas_Nguyen',
+      firstName: 'Nguyen Thanh',
+      lastName: 'Thao Nguyen',
+      role: 'MANAGER',
+      passwordHash: defaultPassword,
+      isActive: true,
+      isEmailVerified: true,
+    },
+    // Admin user
+    {
+      email: 'admin@example.com',
+      username: 'admin',
+      firstName: 'Admin',
+      lastName: 'User',
+      role: 'ADMIN',
+      passwordHash: defaultPassword,
+      isActive: true,
+      isEmailVerified: true,
+    },
+  ]
+
+  await prisma.$transaction(async (tx) => {
+    for (const user of users) {
+      await tx.user.create({ data: user })
+      console.log(`  ✓ Created ${user.role}: ${user.username} (${user.email})`)
     }
   })
-  console.log(`✅ Created leave request: ${request1.employeeName} - ${request1.status}`)
 
-  // Sample leave request 2 - Pending
-  const request2 = await prisma.leaveRequest.create({
-    data: {
-      formResponseId: 'test_response_002',
-      employeeName: 'Abebe kebede',
-      managerName: 'Jinsoo Park',
+  console.log(`  ✅ Created ${users.length} users`)
+}
+
+/**
+ * Seed sample leave requests for testing
+ */
+async function seedLeaveRequests() {
+  console.log('📝 Seeding sample leave requests...')
+
+  const users = await prisma.user.findMany({
+    where: { role: {in: ['USER', 'MANAGER']} },
+    select: { username: true }
+  })
+
+  if (users.length === 0) {
+    console.log('  ⚠️  No users found, skipping leave requests')
+    return
+  }
+
+  const leaveRequests = [
+    {
+      formResponseId: 'seed_001',
+      employeeName: users[0]!.username,
+      managerName: 'Manager A',
+      leaveType: 'Annual Leave',
+      startDate: new Date('2025-12-01'),
+      endDate: new Date('2025-12-03'),
+      shiftType: 'Full Day',
+      reason: 'Family vacation',
+      status: 'PENDING',
+      durationDays: 3,
+      submittedAt: new Date('2025-11-20'),
+    },
+    {
+      formResponseId: 'seed_002',
+      employeeName: users[1]?.username || users[0]!.username,
+      managerName: 'Manager B',
       leaveType: 'Sick Leave',
-      startDate: new Date('2022-04-22'),
-      endDate: new Date('2022-04-30'),
-      shiftType: 'Full Shift',
+      startDate: new Date('2025-11-28'),
+      endDate: new Date('2025-11-28'),
+      shiftType: 'Half Day',
       reason: 'Medical appointment',
-      status: 'PENDING',
-      durationDays: 7,
-      submittedAt: new Date('2022-04-22T10:30:00')
-    }
-  })
-  console.log(`✅ Created leave request: ${request2.employeeName} - ${request2.status}`)
-
-  // Sample leave request 3 - Approved
-  const request3 = await prisma.leaveRequest.create({
-    data: {
-      formResponseId: 'test_response_003',
-      employeeName: 'daniel',
-      managerName: 'Ian Lee',
-      leaveType: 'Vacation',
-      startDate: new Date('2022-04-25'),
-      endDate: new Date('2022-05-01'),
-      shiftType: 'Full Shift',
-      reason: 'Family trip',
       status: 'APPROVED',
-      durationDays: 7,
-      submittedAt: new Date('2022-04-20T14:00:00')
-    }
-  })
-  console.log(`✅ Created leave request: ${request3.employeeName} - ${request3.status}`)
+      durationDays: 1,
+      submittedAt: new Date('2025-11-25'),
+    },
+  ]
 
-  // Create approval for request 3
-  await prisma.leaveApproval.create({
-    data: {
-      requestId: request3.id,
-      action: 'APPROVED',
-      approvedBy: 'HR Manager',
-      adminNotes: 'Approved - sufficient notice given'
+  await prisma.$transaction(async (tx) => {
+    for (const request of leaveRequests) {
+      await tx.leaveRequest.create({ data: request })
+      console.log(`  ✓ Created leave request: ${request.formResponseId}`)
     }
   })
 
-  // Create audit log for request 3
-  await prisma.auditLog.create({
-    data: {
-      entityType: 'leave_request',
-      entityId: request3.id,
-      action: 'APPROVED',
-      performedBy: 'HR Manager',
-      details: JSON.stringify({ notes: 'Approved - sufficient notice given' })
-    }
-  })
+  console.log(`  ✅ Created ${leaveRequests.length} leave requests`)
+}
 
-  // Sample leave request 4 - Denied
-  const request4 = await prisma.leaveRequest.create({
-    data: {
-      formResponseId: 'test_response_004',
-      employeeName: 'feven tesfaye',
-      managerName: 'Jaebum Park',
-      leaveType: 'Unpaid',
-      startDate: new Date('2022-04-23'),
-      endDate: new Date('2022-04-27'),
-      shiftType: 'First-Half',
-      reason: 'Personal reasons',
-      status: 'DENIED',
-      durationDays: 5,
-      submittedAt: new Date('2022-04-22T15:00:00')
-    }
-  })
-  console.log(`✅ Created leave request: ${request4.employeeName} - ${request4.status}`)
+/**
+ * Main seeding function
+ */
+async function main() {
+  console.log('🌱 Starting database seed...\n')
 
-  // Create approval for request 4 (DENIED)
-  await prisma.leaveApproval.create({
-    data: {
-      requestId: request4.id,
-      action: 'DENIED',
-      approvedBy: 'HR Manager',
-      adminNotes: 'Insufficient notice period'
-    }
-  })
+  try {
+    await clearDatabase()
+    await seedUsers()
+    await seedLeaveRequests()
 
-  // Create audit log for request 4
-  await prisma.auditLog.create({
-    data: {
-      entityType: 'leave_request',
-      entityId: request4.id,
-      action: 'DENIED',
-      performedBy: 'HR Manager',
-      details: JSON.stringify({ notes: 'Insufficient notice period' })
-    }
-  })
-
-  // Sample leave request 5 - Pending
-  const request5 = await prisma.leaveRequest.create({
-    data: {
-      formResponseId: 'test_response_005',
-      employeeName: 'tedia atalay',
-      managerName: 'Jinsoo Park',
-      leaveType: 'Sick Leave',
-      startDate: new Date('2022-04-24'),
-      endDate: new Date('2022-04-28'),
-      shiftType: 'Second-Half',
-      reason: 'Doctor appointment',
-      status: 'PENDING',
-      durationDays: 5,
-      submittedAt: new Date('2022-04-23T08:00:00')
-    }
-  })
-  console.log(`✅ Created leave request: ${request5.employeeName} - ${request5.status}`)
-
-  console.log('\n📊 Seed Summary:')
-  console.log('  - Total requests: 5')
-  console.log('  - Pending: 3')
-  console.log('  - Approved: 1')
-  console.log('  - Denied: 1')
-  console.log('\n🎉 Database seeded successfully!')
+    console.log('\n✅ Database seeding complete!')
+    console.log('\n📋 Login credentials:')
+    console.log('   Email: admin@example.com (ADMIN)')
+    console.log('   Email: thomas.nguyen@example.com (MANAGER)')
+    console.log('   Email: silver.bui@example.com (USER)')
+    console.log('   Password: [See SEED_PASSWORD env or check seed.ts]\n')
+  } catch (error) {
+    console.error('❌ Seeding failed:', error)
+    throw error
+  }
 }
 
 main()
   .catch((e) => {
-    console.error('❌ Error seeding database:', e)
+    console.error(e)
     process.exit(1)
   })
   .finally(async () => {

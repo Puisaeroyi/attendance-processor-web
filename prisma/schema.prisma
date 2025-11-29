@@ -12,7 +12,8 @@ datasource db {
 
 model LeaveRequest {
   id              Int              @id @default(autoincrement())
-  formResponseId  String           @unique @map("form_response_id")
+  formResponseId  String?          @unique @map("form_response_id")
+  userId          String?          @map("user_id")
   employeeName    String           @map("employee_name")
   managerName     String           @map("manager_name")
   leaveType       String           @map("leave_type")
@@ -34,10 +35,12 @@ model LeaveRequest {
   archiveReason   String?          @map("archive_reason")
   deleteReason    String?          @map("delete_reason")
 
+  // Relations
+  user            User?            @relation(fields: [userId], references: [id])
   approvals       LeaveApproval[]
-  auditLogs       AuditLog[]
 
   @@index([status])
+  @@index([userId])
   @@index([employeeName])
   @@index([managerName])
   @@index([startDate, endDate])
@@ -61,19 +64,108 @@ model LeaveApproval {
   @@map("leave_approvals")
 }
 
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  username      String    @unique
+  passwordHash  String    @map("password_hash")
+
+  // Profile
+  firstName     String?   @map("first_name")
+  lastName      String?   @map("last_name")
+  role          String    @default("USER")
+
+  // Status & Security
+  isActive      Boolean   @default(true) @map("is_active")
+  isEmailVerified Boolean @default(false) @map("is_email_verified")
+
+  // Account lockout
+  failedLoginAttempts Int       @default(0) @map("failed_login_attempts")
+  lockedUntil         DateTime? @map("locked_until")
+
+  // Timestamps
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+  lastLoginAt   DateTime? @map("last_login_at")
+  passwordChangedAt DateTime? @map("password_changed_at")
+
+  // Relations
+  sessions      Session[]
+  auditLogs     AuditLog[]
+  passwordResets PasswordReset[]
+  leaveRequests LeaveRequest[]
+
+  @@index([email])
+  @@index([username])
+  @@index([role])
+  @@index([isActive])
+  @@map("users")
+}
+
+// User roles as string constants for SQLite compatibility
+// Values: USER, ADMIN, MANAGER
+
+model Session {
+  id              String    @id @default(cuid())
+  userId          String    @map("user_id")
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Device tracking
+  deviceId        String?   @map("device_id")
+  deviceName      String?   @map("device_name")
+  userAgent       String?   @map("user_agent")
+  ipAddress       String?   @map("ip_address")
+
+  // Token management
+  accessToken     String    @map("access_token")
+  tokenExpiry    DateTime  @map("token_expiry")
+
+  // Lifecycle
+  createdAt       DateTime  @default(now()) @map("created_at")
+  lastActivityAt DateTime  @default(now()) @map("last_activity_at")
+  expiresAt       DateTime  @map("expires_at")
+  revokedAt      DateTime? @map("revoked_at")
+
+  @@index([userId])
+  @@index([deviceId])
+  @@index([expiresAt])
+  @@index([revokedAt])
+  @@map("sessions")
+}
+
+model PasswordReset {
+  id          Int       @id @default(autoincrement())
+  userId      String    @map("user_id")
+  token       String    @unique
+  expiresAt   DateTime  @map("expires_at")
+  usedAt      DateTime? @map("used_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([token])
+  @@index([expiresAt])
+  @@index([userId])
+  @@map("password_resets")
+}
+
 model AuditLog {
   id          Int           @id @default(autoincrement())
+  userId      String?       @map("user_id") // Can be null for pre-auth events
   entityType  String        @map("entity_type")
-  entityId    Int           @map("entity_id")
+  entityId    Int?          @map("entity_id") // Optional - not all events relate to leave requests
   action      String
-  performedBy String        @map("performed_by")
+  performedBy String?       @map("performed_by")
+  status      String    @default("SUCCESS")
+  reason      String?
+  metadata    String?
   timestamp   DateTime      @default(now())
-  details     String?
 
-  request     LeaveRequest? @relation(fields: [entityId], references: [id], onDelete: Cascade)
+  // Relations
+  user        User? @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@index([entityType, entityId])
+  @@index([userId, timestamp])
+  @@index([entityType, timestamp])
   @@index([performedBy])
-  @@index([timestamp])
   @@map("audit_log")
 }
