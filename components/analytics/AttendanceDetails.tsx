@@ -305,7 +305,7 @@ export default function AttendanceDetails({ data }: AttendanceDetailsProps) {
         </div>
         
         {/* Month Navigation */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2">
           <button
             onClick={goPrev}
             disabled={!canGoPrev}
@@ -313,9 +313,17 @@ export default function AttendanceDetails({ data }: AttendanceDetailsProps) {
           >
             <ChevronLeft className="h-5 w-5 text-gray-600" />
           </button>
-          <span className="text-sm font-semibold text-gray-700 min-w-[140px] text-center">
-            {formatMonth(selectedMonth)}
-          </span>
+          <select
+            value={selectedMonth}
+            onChange={(e) => setSelectedMonth(e.target.value)}
+            className="px-3 py-1.5 text-sm font-semibold text-gray-700 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent min-w-[160px] text-center cursor-pointer"
+          >
+            {months.map(month => (
+              <option key={month} value={month} className="text-gray-900 bg-white">
+                {formatMonth(month)}
+              </option>
+            ))}
+          </select>
           <button
             onClick={goNext}
             disabled={!canGoNext}
