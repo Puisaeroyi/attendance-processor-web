@@ -54,7 +54,8 @@ export function LeaveRequestForm({ isOpen, onClose, onSubmit, defaultFullName = 
 
   const getTodayString = (): string => {
     const today = new Date()
-    return today.toISOString().split('T')[0]
+    const isoString = today.toISOString().split('T')[0]
+    return isoString ?? ''
   }
 
   const validateForm = (): boolean => {
