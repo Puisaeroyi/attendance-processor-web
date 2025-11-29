@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useCallback } from 'react';
 import { AttendanceRecord } from '@/types/attendance';
-import { Calendar, ChevronLeft, ChevronRight, ArrowUpDown, ArrowUp, ArrowDown, Filter, X } from 'lucide-react';
+import { Calendar, ArrowUpDown, ArrowUp, ArrowDown, Filter, X } from 'lucide-react';
 
 interface AttendanceDetailsProps {
   data: AttendanceRecord[];
@@ -134,21 +134,15 @@ export default function AttendanceDetails({ data }: AttendanceDetailsProps) {
   const [selectedShift, setSelectedShift] = useState<string>('');
   const [showViolationsOnly, setShowViolationsOnly] = useState(false);
   
-  // Month navigation state
-  const [selectedMonth, setSelectedMonth] = useState<string>('');
+  // Date range state
+  const [dateRange, setDateRange] = useState<{ start: string; end: string }>({ start: '', end: '' });
 
   // Extract unique values for filter dropdowns (memoized)
-  const { months, employees, shifts } = useMemo(() => {
-    const monthSet = new Set<string>();
+  const { employees, shifts } = useMemo(() => {
     const employeeMap = new Map<string, string>(); // id -> name
     const shiftSet = new Set<string>();
     
     data.forEach(record => {
-      // Months
-      const date = new Date(record.date);
-      const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-      monthSet.add(monthKey);
-      
       // Employees (store id -> name mapping)
       if (record.id) {
         employeeMap.set(record.id, record.name || record.id);
@@ -161,29 +155,34 @@ export default function AttendanceDetails({ data }: AttendanceDetailsProps) {
     });
     
     return {
-      months: Array.from(monthSet).sort().reverse(),
       employees: Array.from(employeeMap.entries()).sort((a, b) => a[1].localeCompare(b[1])),
       shifts: Array.from(shiftSet).sort(),
     };
   }, [data]);
 
-  // Initialize selected month
-  useMemo(() => {
-    if (!selectedMonth && months.length > 0 && months[0]) {
-      setSelectedMonth(months[0]);
-    }
-  }, [months, selectedMonth]);
-
   // Optimized filter + sort pipeline (memoized)
   const processedData = useMemo(() => {
-    // Step 1: Filter by month (most restrictive first for performance)
+    // Step 1: Filter by date range
     let result = data;
     
-    if (selectedMonth) {
+    if (dateRange.start || dateRange.end) {
       result = result.filter(record => {
-        const date = new Date(record.date);
-        const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-        return monthKey === selectedMonth;
+        const recordDate = new Date(record.date);
+        recordDate.setHours(0, 0, 0, 0);
+        
+        if (dateRange.start) {
+          const startDate = new Date(dateRange.start);
+          startDate.setHours(0, 0, 0, 0);
+          if (recordDate < startDate) return false;
+        }
+        
+        if (dateRange.end) {
+          const endDate = new Date(dateRange.end);
+          endDate.setHours(0, 0, 0, 0);
+          if (recordDate > endDate) return false;
+        }
+        
+        return true;
       });
     }
     
@@ -212,7 +211,7 @@ export default function AttendanceDetails({ data }: AttendanceDetailsProps) {
     });
     
     return sorted;
-  }, [data, selectedMonth, selectedEmployee, selectedShift, showViolationsOnly, sortField, sortDirection]);
+  }, [data, dateRange, selectedEmployee, selectedShift, showViolationsOnly, sortField, sortDirection]);
 
   // Toggle sort direction or change field
   const handleSort = useCallback((field: SortField) => {
@@ -229,40 +228,11 @@ export default function AttendanceDetails({ data }: AttendanceDetailsProps) {
     setSelectedEmployee('');
     setSelectedShift('');
     setShowViolationsOnly(false);
+    setDateRange({ start: '', end: '' });
   }, []);
 
   // Check if any filter is active
-  const hasActiveFilters = selectedEmployee || selectedShift || showViolationsOnly;
-
-  // Format month for display
-  const formatMonth = (monthKey: string) => {
-    if (!monthKey) return '';
-    const parts = monthKey.split('-');
-    if (parts.length !== 2 || !parts[0] || !parts[1]) return '';
-    const year = parseInt(parts[0], 10);
-    const month = parseInt(parts[1], 10);
-    const date = new Date(year, month - 1);
-    return date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-  };
-
-  // Navigate months
-  const currentIndex = months.indexOf(selectedMonth);
-  const canGoNext = currentIndex > 0;
-  const canGoPrev = currentIndex < months.length - 1;
-
-  const goNext = () => {
-    const prevMonth = months[currentIndex - 1];
-    if (canGoNext && prevMonth !== undefined) {
-      setSelectedMonth(prevMonth);
-    }
-  };
-
-  const goPrev = () => {
-    const nextMonth = months[currentIndex + 1];
-    if (canGoPrev && nextMonth !== undefined) {
-      setSelectedMonth(nextMonth);
-    }
-  };
+  const hasActiveFilters = selectedEmployee || selectedShift || showViolationsOnly || dateRange.start || dateRange.end;
 
   // Format date for display
   const formatDate = (date: Date | string) => {
@@ -304,33 +274,35 @@ export default function AttendanceDetails({ data }: AttendanceDetailsProps) {
           <h3 className="text-xl font-bold text-gray-900">Attendance Details</h3>
         </div>
         
-        {/* Month Navigation */}
-        <div className="flex items-center gap-2">
-          <button
-            onClick={goPrev}
-            disabled={!canGoPrev}
-            className="p-1.5 rounded-lg hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-          >
-            <ChevronLeft className="h-5 w-5 text-gray-600" />
-          </button>
-          <select
-            value={selectedMonth}
-            onChange={(e) => setSelectedMonth(e.target.value)}
-            className="px-3 py-1.5 text-sm font-semibold text-gray-700 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent min-w-[160px] text-center cursor-pointer"
-          >
-            {months.map(month => (
-              <option key={month} value={month} className="text-gray-900 bg-white">
-                {formatMonth(month)}
-              </option>
-            ))}
-          </select>
-          <button
-            onClick={goNext}
-            disabled={!canGoNext}
-            className="p-1.5 rounded-lg hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-          >
-            <ChevronRight className="h-5 w-5 text-gray-600" />
-          </button>
+        {/* Date Range Picker */}
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <label className="text-sm text-gray-600">From:</label>
+            <input
+              type="date"
+              value={dateRange.start}
+              onChange={(e) => setDateRange(prev => ({ ...prev, start: e.target.value }))}
+              className="px-3 py-1.5 text-sm text-gray-700 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent cursor-pointer"
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <label className="text-sm text-gray-600">To:</label>
+            <input
+              type="date"
+              value={dateRange.end}
+              onChange={(e) => setDateRange(prev => ({ ...prev, end: e.target.value }))}
+              className="px-3 py-1.5 text-sm text-gray-700 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent cursor-pointer"
+            />
+          </div>
+          {(dateRange.start || dateRange.end) && (
+            <button
+              onClick={() => setDateRange({ start: '', end: '' })}
+              className="p-1.5 text-gray-500 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+              title="Clear date range"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
         </div>
       </div>
 
@@ -454,7 +426,10 @@ export default function AttendanceDetails({ data }: AttendanceDetailsProps) {
       {/* Summary */}
       <div className="mt-4 pt-4 border-t border-gray-200 flex items-center justify-between">
         <p className="text-sm text-gray-500">
-          Showing {processedData.length} records for {formatMonth(selectedMonth)}
+          Showing {processedData.length} records
+          {dateRange.start && dateRange.end && ` from ${formatDate(dateRange.start)} to ${formatDate(dateRange.end)}`}
+          {dateRange.start && !dateRange.end && ` from ${formatDate(dateRange.start)}`}
+          {!dateRange.start && dateRange.end && ` until ${formatDate(dateRange.end)}`}
           {hasActiveFilters && ' (filtered)'}
         </p>
         <p className="text-xs text-gray-400">
